@@ -1,0 +1,24 @@
+{
+  "name": "farmrpg",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently --names 'CLIENT,SERVER' --prefix-colors 'cyan,magenta' 'bun run dev:client' 'bun run dev:server'",
+    "dev:client": "bun --cwd apps/client dev",
+    "dev:server": "bun --cwd apps/server dev",
+    "build": "bun --cwd apps/client build",
+    "build:client": "bun --cwd apps/client build",
+    "start": "bun --cwd apps/server start",
+    "start:server": "bun --cwd apps/server start"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "concurrently": "^9.2.1"
+  },
+  "trustedDependencies": [
+    "esbuild"
+  ]
+}
