@@ -1,8 +1,7 @@
 // Refactored FarmRPG Service with separated responsibilities
 import { HttpClient } from "./HttpClient";
 import { sleep } from "../utils/async";
-import { INVENTORY_CAP, BAIT_ITEM_ID, DEFAULT_FISHING_LOCATION, DEFAULT_BAIT_AMOUNT, DEFAULT_FISHING_PARAMS } from "../utils/constants";
-import type { FishCatchData } from "../models/FishCatch";
+import { INVENTORY_CAP } from "../utils/constants";
 import type { PlayerCoins } from "../models/PlayerStats";
 import type { ItemDetails } from "../models/Item";
 import type { BuyItemResult } from "../models/BuyItem";
@@ -32,68 +31,6 @@ export class FarmRPGService {
     });
   }
 
-  // === FISHING METHODS ===
-  
-  async catchFish(params?: {
-    id?: number;      // Location ID
-    r?: number;       // Random value
-    bamt?: number;    // Bait amount
-    p?: number;       // Unknown parameter
-    q?: number;       // Unknown parameter
-  }): Promise<{ status: number; data?: FishCatchData; error?: string }> {
-    const id = params?.id ?? DEFAULT_FISHING_LOCATION;
-    const r = params?.r ?? Math.floor(Math.random() * 1000000);
-    const bamt = params?.bamt ?? DEFAULT_BAIT_AMOUNT;
-    const p = params?.p ?? DEFAULT_FISHING_PARAMS.p;
-    const q = params?.q ?? DEFAULT_FISHING_PARAMS.q;
-    
-    const result = await this.http.get(`/worker.php?go=fishcaught&id=${id}&r=${r}&bamt=${bamt}&p=${p}&q=${q}`);
-    
-    if (result.error) {
-      return { status: result.status, error: result.error };
-    }
-
-    try {
-      const html = result.data!;
-      const $ = this.http.parseHtml(html);
-
-      // Check for "no bait" error
-      if (html.includes("You do not have any bait")) {
-        return { status: 400, error: "No bait available" };
-      }
-
-      const fishName = $(".content-block-title").first().text().trim();
-      const totalFishText = $("strong:contains('Total Fish Caught:')").text();
-      const totalFishMatch = totalFishText.match(/(\d+)/);
-      const totalFishCaught = this.http.parseNumber(totalFishMatch?.[1] || "0");
-
-      const fishingXpText = $("strong:contains('Fishing XP:')").parent().text();
-      const fishingXpMatch = fishingXpText.match(/(\d+)%/);
-      const fishingXpPercent = this.http.parseNumber(fishingXpMatch?.[1] || "0");
-
-      const staminaText = $("strong:contains('Stamina:')").parent().text();
-      const staminaMatch = staminaText.match(/(\d+)/);
-      const staminaLeft = this.http.parseNumber(staminaMatch?.[1] || "0");
-
-      const baitText = $("strong:contains('Bait Left:')").parent().text();
-      const baitMatch = baitText.match(/(\d+)/);
-      const baitLeft = this.http.parseNumber(baitMatch?.[1] || "0");
-
-      return {
-        status: 200,
-        data: {
-          catch: { fishName },
-          stats: { totalFishCaught, fishingXpPercent },
-          resources: { stamina: staminaLeft, bait: baitLeft }
-        }
-      };
-    } catch (error) {
-      return {
-        status: 500,
-        error: error instanceof Error ? error.message : "Parse error"
-      };
-    }
-  }
 
   // === PLAYER STATS METHODS ===
 
