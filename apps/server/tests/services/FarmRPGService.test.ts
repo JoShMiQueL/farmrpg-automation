@@ -1,6 +1,5 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { FarmRPGService } from "../../src/services/FarmRPGService";
-import { HttpClient } from "../../src/services/HttpClient";
 
 describe("FarmRPGService", () => {
   let service: FarmRPGService;
@@ -17,13 +16,13 @@ describe("FarmRPGService", () => {
       }),
       parseNumber: mock((str: string) => {
         const num = parseInt(str.replace(/,/g, ""), 10);
-        return isNaN(num) ? 0 : num;
-      })
+        return Number.isNaN(num) ? 0 : num;
+      }),
     };
 
     service = new FarmRPGService();
-    // @ts-ignore - Replace http client for testing
-    service["http"] = mockHttpClient;
+    // @ts-expect-error - Replace http client for testing
+    service.http = mockHttpClient;
   });
 
   describe("getPlayerStats", () => {
@@ -41,7 +40,7 @@ describe("FarmRPGService", () => {
       expect(result.status).toBe(200);
       expect(result.data).toEqual({
         silver: 1234,
-        gold: 56
+        gold: 56,
       });
     });
 
@@ -85,8 +84,8 @@ describe("FarmRPGService", () => {
 
       expect(result.status).toBe(200);
       expect(result.data?.categories).toHaveLength(1);
-      expect(result.data!.categories[0]!.category).toBe("fish");
-      expect(result.data!.categories[0]!.items[0]!.name).toBe("Drum");
+      expect(result.data?.categories[0]?.category).toBe("fish");
+      expect(result.data?.categories[0]?.items[0]?.name).toBe("Drum");
       expect(result.data?.stats.uniqueItems).toBe(8);
       expect(result.data?.stats.totalItems).toBe(407);
       expect(result.data?.stats.maxCapacity).toBe(200);
@@ -111,7 +110,7 @@ describe("FarmRPGService", () => {
 
       expect(result.status).toBe(200);
       expect(result.data?.categories).toHaveLength(1);
-      expect(result.data!.categories[0]!.category).toBe("fish");
+      expect(result.data?.categories[0]?.category).toBe("fish");
     });
 
     test("should filter by multiple categories", async () => {
@@ -180,7 +179,11 @@ describe("FarmRPGService", () => {
     });
 
     test("should return error when no fish data", async () => {
-      mockHttpClient.post.mockResolvedValue({ data: "<div>No fish</div>", error: null, status: 200 });
+      mockHttpClient.post.mockResolvedValue({
+        data: "<div>No fish</div>",
+        error: null,
+        status: 200,
+      });
 
       const result = await service.catchFish(1, 1);
 
@@ -281,10 +284,10 @@ describe("FarmRPGService", () => {
           <li><div class="item-title">Buy Price</div><div class="item-after">3 Silver</div></li>
         </ul>
       `;
-      
+
       // Mock getPlayerStats
       const playerStatsHtml = `<img alt="Silver" /><strong>1,000</strong><img alt="Gold" /><strong>10</strong>`;
-      
+
       // Mock the actual buy request
       mockHttpClient.get.mockResolvedValueOnce({ data: itemDetailsHtml, error: null, status: 200 });
       mockHttpClient.get.mockResolvedValueOnce({ data: playerStatsHtml, error: null, status: 200 });
@@ -306,7 +309,7 @@ describe("FarmRPGService", () => {
         </ul>
       `;
       const playerStatsHtml = `<img alt="Silver" /><strong>1,000</strong><img alt="Gold" /><strong>10</strong>`;
-      
+
       mockHttpClient.get.mockResolvedValueOnce({ data: itemDetailsHtml, error: null, status: 200 });
       mockHttpClient.get.mockResolvedValueOnce({ data: playerStatsHtml, error: null, status: 200 });
 
@@ -356,7 +359,7 @@ describe("FarmRPGService", () => {
         <div class="card-content-inner">Your inventory contains <strong>1</strong> unique items and <strong>100</strong> items in total.</div>
         <div class="card-content-inner">Currently, you cannot have more than <strong>200</strong> of any single thing.</div>
       `;
-      
+
       mockHttpClient.get.mockResolvedValue({ data: mockInventoryHtml, error: null, status: 200 });
       mockHttpClient.post.mockResolvedValue({ data: "success", error: null, status: 200 });
 
@@ -371,7 +374,7 @@ describe("FarmRPGService", () => {
         <div class="card-content-inner">Your inventory contains <strong>0</strong> unique items and <strong>0</strong> items in total.</div>
         <div class="card-content-inner">Currently, you cannot have more than <strong>200</strong> of any single thing.</div>
       `;
-      
+
       mockHttpClient.get.mockResolvedValue({ data: mockInventoryHtml, error: null, status: 200 });
 
       const result = await service.sellAllItems();

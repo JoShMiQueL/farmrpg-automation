@@ -23,13 +23,13 @@ export class HttpClient {
     try {
       const res = await fetch(`${this.config.baseUrl}${endpoint}`, {
         headers: this.config.headers,
-        method: "GET"
+        method: "GET",
       });
 
       if (res.status !== 200) {
         return {
           status: res.status,
-          error: `HTTP ${res.status}: Failed to fetch ${endpoint}`
+          error: `HTTP ${res.status}: Failed to fetch ${endpoint}`,
         };
       }
 
@@ -38,7 +38,7 @@ export class HttpClient {
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -48,13 +48,13 @@ export class HttpClient {
       const res = await fetch(`${this.config.baseUrl}${endpoint}`, {
         headers: this.config.headers,
         method: "POST",
-        body: body ? JSON.stringify(body) : null
+        body: body ? JSON.stringify(body) : null,
       });
 
       if (res.status !== 200) {
         return {
           status: res.status,
-          error: `HTTP ${res.status}: Failed to post to ${endpoint}`
+          error: `HTTP ${res.status}: Failed to post to ${endpoint}`,
         };
       }
 
@@ -63,7 +63,7 @@ export class HttpClient {
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -73,6 +73,6 @@ export class HttpClient {
   }
 
   parseNumber(text: string): number {
-    return Number.parseInt(text.replace(/,/g, '')) || 0;
+    return Number.parseInt(text.replace(/,/g, ""), 10) || 0;
   }
 }

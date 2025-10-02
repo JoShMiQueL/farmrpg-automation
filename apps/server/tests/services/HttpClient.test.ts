@@ -1,4 +1,4 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { HttpClient } from "../../src/services/HttpClient";
 
 describe("HttpClient", () => {
@@ -43,14 +43,14 @@ describe("HttpClient", () => {
       const html = "<div class='test'>Hello</div>";
       // @ts-ignore - Access private method for testing
       const $ = client.parseHtml(html);
-      
+
       expect($(".test").text()).toBe("Hello");
     });
 
     test("should handle empty HTML", () => {
       // @ts-ignore - Access private method for testing
       const $ = client.parseHtml("");
-      
+
       expect($("body").length).toBeGreaterThanOrEqual(0);
     });
 
@@ -63,7 +63,7 @@ describe("HttpClient", () => {
       `;
       // @ts-ignore - Access private method for testing
       const $ = client.parseHtml(html);
-      
+
       expect($(".item").length).toBe(2);
       expect($(".item").first().text()).toBe("Item 1");
     });
@@ -72,7 +72,7 @@ describe("HttpClient", () => {
       const html = "<div><p>Unclosed tags";
       // @ts-ignore - Access private method for testing
       const $ = client.parseHtml(html);
-      
+
       // Cheerio should still parse it
       expect($("div").length).toBeGreaterThan(0);
     });
@@ -81,27 +81,26 @@ describe("HttpClient", () => {
       const html = "<div>Price: $100 &amp; 50¢</div>";
       // @ts-ignore - Access private method for testing
       const $ = client.parseHtml(html);
-      
+
       expect($("div").text()).toContain("$100");
     });
   });
-
   describe("HttpClient configuration", () => {
     test("should create client with custom base URL", () => {
-      const client = new HttpClient({ 
-        baseUrl: "https://custom.com", 
-        headers: { "Custom-Header": "value" } 
+      const client = new HttpClient({
+        baseUrl: "https://custom.com",
+        headers: { "Custom-Header": "value" },
       });
-      
+
       expect(client).toBeDefined();
     });
 
     test("should create client with empty headers", () => {
-      const client = new HttpClient({ 
-        baseUrl: "https://test.com", 
-        headers: {} 
+      const client = new HttpClient({
+        baseUrl: "https://test.com",
+        headers: {},
       });
-      
+
       expect(client).toBeDefined();
     });
   });

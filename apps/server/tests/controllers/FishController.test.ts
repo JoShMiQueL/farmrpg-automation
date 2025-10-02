@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { FishController } from "../../src/controllers/FishController";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { Context } from "hono";
+import { FishController } from "../../src/controllers/FishController";
 
 describe("FishController", () => {
   let controller: FishController;
@@ -9,48 +9,52 @@ describe("FishController", () => {
 
   beforeEach(() => {
     mockFarmRPGService = {
-      catchFish: mock(() => Promise.resolve({
-        status: 200,
-        data: {
-          catch: {
-            id: 0,
-            name: "Yellow Perch",
-            image: "https://farmrpg.com/img/items/yellowperch.png"
+      catchFish: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: {
+            catch: {
+              id: 0,
+              name: "Yellow Perch",
+              image: "https://farmrpg.com/img/items/yellowperch.png",
+            },
+            stats: {
+              totalFishCaught: 377,
+              fishingXpPercent: 7.16,
+            },
+            resources: {
+              stamina: 50,
+              bait: 198,
+            },
           },
-          stats: {
-            totalFishCaught: 377,
-            fishingXpPercent: 7.16
+        }),
+      ),
+      getBaitInfo: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: {
+            baitName: "Worms",
+            baitCount: 199,
+            streak: 5268,
+            bestStreak: 5268,
           },
-          resources: {
-            stamina: 50,
-            bait: 198
-          }
-        }
-      })),
-      getBaitInfo: mock(() => Promise.resolve({
-        status: 200,
-        data: {
-          baitName: "Worms",
-          baitCount: 199,
-          streak: 5268,
-          bestStreak: 5268
-        }
-      }))
+        }),
+      ),
     };
 
     controller = new FishController();
-    // @ts-ignore - Replace service for testing
-    controller["farmRPGService"] = mockFarmRPGService;
+    // @ts-expect-error - Replace service for testing
+    controller.farmRPGService = mockFarmRPGService;
 
     mockContext = {
       req: {
         json: mock(() => Promise.resolve({ locationId: 1, baitAmount: 1 })),
-        query: mock(() => "1")
+        query: mock(() => "1"),
       },
-      json: mock((data: any, status?: number) => {
+      json: mock((data: any, _status?: number) => {
         // Return the data directly to match what tests expect
         return data as any;
-      })
+      }),
     };
   });
 
@@ -111,7 +115,7 @@ describe("FishController", () => {
     test("should handle service errors", async () => {
       mockFarmRPGService.catchFish.mockResolvedValue({
         status: 400,
-        error: "No bait available"
+        error: "No bait available",
       });
 
       const result: any = await controller.catchFish(mockContext as Context);
@@ -123,7 +127,7 @@ describe("FishController", () => {
     test("should handle upstream errors", async () => {
       mockFarmRPGService.catchFish.mockResolvedValue({
         status: 502,
-        error: "FarmRPG API error"
+        error: "FarmRPG API error",
       });
 
       const result: any = await controller.catchFish(mockContext as Context);
@@ -164,7 +168,7 @@ describe("FishController", () => {
     test("should handle service errors", async () => {
       mockFarmRPGService.getBaitInfo.mockResolvedValue({
         status: 500,
-        error: "Parse error"
+        error: "Parse error",
       });
 
       const result: any = await controller.getBaitInfo(mockContext as Context);

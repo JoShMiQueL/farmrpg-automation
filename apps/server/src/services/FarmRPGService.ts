@@ -1,12 +1,19 @@
 // Refactored FarmRPG Service with separated responsibilities
-import { HttpClient } from "./HttpClient";
+
+import type { BuyItemResult } from "../models/BuyItem";
+import type { FishCatchData } from "../models/FishCatch";
+import type {
+  InventoryCategory,
+  InventoryCategoryData,
+  InventoryData,
+  InventoryItem,
+  InventoryStats,
+} from "../models/Inventory";
+import type { ItemDetails } from "../models/Item";
+import type { PlayerCoins } from "../models/PlayerStats";
 import { sleep } from "../utils/async";
 import { INVENTORY_CAP } from "../utils/constants";
-import type { PlayerCoins } from "../models/PlayerStats";
-import type { ItemDetails } from "../models/Item";
-import type { BuyItemResult } from "../models/BuyItem";
-import type { InventoryItem, InventoryData, InventoryCategory, InventoryCategoryData, InventoryStats } from "../models/Inventory";
-import type { FishCatchData } from "../models/FishCatch";
+import { HttpClient } from "./HttpClient";
 
 export class FarmRPGService {
   private http: HttpClient;
@@ -15,9 +22,9 @@ export class FarmRPGService {
     this.http = new HttpClient({
       baseUrl: "https://farmrpg.com",
       headers: {
-        "accept": "*/*",
+        accept: "*/*",
         "accept-language": "en-US,en;q=0.5",
-        "priority": "u=1, i",
+        priority: "u=1, i",
         "sec-ch-ua": '"Chromium";v="140", "Not=A?Brand";v="24", "Brave";v="140"',
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": '"Windows"',
@@ -26,12 +33,11 @@ export class FarmRPGService {
         "sec-fetch-site": "same-origin",
         "sec-gpc": "1",
         "x-requested-with": "XMLHttpRequest",
-        "cookie": process.env.FARMRPG_COOKIE || "",
-        "Referer": "https://farmrpg.com/"
-      }
+        cookie: process.env.FARMRPG_COOKIE || "",
+        Referer: "https://farmrpg.com/",
+      },
     });
   }
-
 
   // === PLAYER STATS METHODS ===
 
@@ -44,29 +50,31 @@ export class FarmRPGService {
     }
 
     try {
-      const $ = this.http.parseHtml(result.data!);
+      const $ = this.http.parseHtml(result.data || "");
 
-      const silverText = $('img[alt="Silver"]').next('strong').text();
+      const silverText = $('img[alt="Silver"]').next("strong").text();
       const silver = this.http.parseNumber(silverText);
 
-      const goldText = $('img[alt="Gold"]').next('strong').text();
+      const goldText = $('img[alt="Gold"]').next("strong").text();
       const gold = this.http.parseNumber(goldText);
 
       return {
         status: 200,
-        data: { silver, gold }
+        data: { silver, gold },
       };
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Parse error"
+        error: error instanceof Error ? error.message : "Parse error",
       };
     }
   }
 
   // === ITEM METHODS ===
 
-  async getItemDetails(itemId: number): Promise<{ status: number; data?: ItemDetails; error?: string }> {
+  async getItemDetails(
+    itemId: number,
+  ): Promise<{ status: number; data?: ItemDetails; error?: string }> {
     const result = await this.http.get(`/item.php?id=${itemId}`);
 
     if (result.error) {
@@ -74,23 +82,39 @@ export class FarmRPGService {
     }
 
     try {
-      const $ = this.http.parseHtml(result.data!);
+      const $ = this.http.parseHtml(result.data || "");
 
       const itemName = $(".navbar-inner .center a").text().trim();
       const description = $("#img").text().trim().split("\n").pop()?.trim() || "";
       const image = `https://farmrpg.com${$("#img img").attr("src")}` || "";
 
-      const inventoryText = $(".item-title:contains('My Inventory')").parent().find(".item-after").text().trim();
+      const inventoryText = $(".item-title:contains('My Inventory')")
+        .parent()
+        .find(".item-after")
+        .text()
+        .trim();
       const inventoryQuantity = this.http.parseNumber(inventoryText);
 
-      const buyPriceText = $(".item-title:contains('Buy Price')").parent().find(".item-after").text().trim();
+      const buyPriceText = $(".item-title:contains('Buy Price')")
+        .parent()
+        .find(".item-after")
+        .text()
+        .trim();
       const buyPriceMatch = buyPriceText.match(/(\d+)\s+(Silver|Gold)/);
       const buyLocation = $(".item-title:contains('Buy Price') span").text().trim();
 
-      const givableText = $(".item-title:contains('Givable')").parent().find(".item-after").text().trim();
+      const givableText = $(".item-title:contains('Givable')")
+        .parent()
+        .find(".item-after")
+        .text()
+        .trim();
       const givable = givableText.toLowerCase() === "yes";
 
-      const helpRequestsText = $(".item-title:contains('Help Requests')").parent().find(".item-after").text().trim();
+      const helpRequestsText = $(".item-title:contains('Help Requests')")
+        .parent()
+        .find(".item-after")
+        .text()
+        .trim();
       const helpRequestsMatch = helpRequestsText.match(/(\d+)/);
 
       const craftingUse: ItemDetails["craftingUse"] = [];
@@ -101,7 +125,9 @@ export class FarmRPGService {
         const craftItemIdStr = craftItemIdMatch?.[1];
         const craftItemId = craftItemIdStr ? this.http.parseNumber(craftItemIdStr) : 0;
         const requirementsHtml = $(elem).find(".item-title span").html();
-        const requirements = requirementsHtml ? requirementsHtml.split("<br/>").map(r => r.trim()) : [];
+        const requirements = requirementsHtml
+          ? requirementsHtml.split("<br/>").map((r) => r.trim())
+          : [];
         const levelText = $(elem).find(".item-after").text().trim();
         const levelMatch = levelText.match(/(\d+)/);
         const levelStr = levelMatch?.[1];
@@ -112,7 +138,7 @@ export class FarmRPGService {
             itemName: craftItemName,
             itemId: craftItemId,
             requirements,
-            requiredLevel
+            requiredLevel,
           });
         }
       });
@@ -123,40 +149,54 @@ export class FarmRPGService {
         description,
         image,
         inventory: inventoryQuantity > 0 ? { quantity: inventoryQuantity } : undefined,
-        buyPrice: buyPriceMatch?.[1] && buyPriceMatch?.[2] ? {
-          amount: this.http.parseNumber(buyPriceMatch[1]),
-          currency: buyPriceMatch[2] as "Silver" | "Gold",
-          location: buyLocation
-        } : undefined,
+        buyPrice:
+          buyPriceMatch?.[1] && buyPriceMatch?.[2]
+            ? {
+                amount: this.http.parseNumber(buyPriceMatch[1]),
+                currency: buyPriceMatch[2] as "Silver" | "Gold",
+                location: buyLocation,
+              }
+            : undefined,
         givable,
-        helpRequests: helpRequestsMatch?.[1] ? this.http.parseNumber(helpRequestsMatch[1]) : undefined,
-        craftingUse: craftingUse.length > 0 ? craftingUse : undefined
+        helpRequests: helpRequestsMatch?.[1]
+          ? this.http.parseNumber(helpRequestsMatch[1])
+          : undefined,
+        craftingUse: craftingUse.length > 0 ? craftingUse : undefined,
       };
 
       return { status: 200, data: itemDetails };
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Parse error"
+        error: error instanceof Error ? error.message : "Parse error",
       };
     }
   }
 
   // === BUYING METHODS ===
 
-  async buyItem(itemId: number, quantity: number): Promise<{ status: number; data?: BuyItemResult; error?: string }> {
+  async buyItem(
+    itemId: number,
+    quantity: number,
+  ): Promise<{ status: number; data?: BuyItemResult; error?: string }> {
     // Get item details and player stats
     const [itemResult, statsResult] = await Promise.all([
       this.getItemDetails(itemId),
-      this.getPlayerStats()
+      this.getPlayerStats(),
     ]);
 
     if (itemResult.error || !itemResult.data) {
-      return { status: itemResult.status, error: itemResult.error || "Failed to fetch item details" };
+      return {
+        status: itemResult.status,
+        error: itemResult.error || "Failed to fetch item details",
+      };
     }
 
     if (statsResult.error || !statsResult.data) {
-      return { status: statsResult.status, error: statsResult.error || "Failed to fetch player stats" };
+      return {
+        status: statsResult.status,
+        error: statsResult.error || "Failed to fetch player stats",
+      };
     }
 
     const itemDetails = itemResult.data;
@@ -173,14 +213,14 @@ export class FarmRPGService {
     let quantityToBuy = quantity;
     if (quantity === -1) {
       quantityToBuy = Math.floor(
-        (currency === "Silver" ? currentCoins.silver : currentCoins.gold) / itemPrice
+        (currency === "Silver" ? currentCoins.silver : currentCoins.gold) / itemPrice,
       );
 
       if (quantityToBuy === 0) {
         const available = currency === "Silver" ? currentCoins.silver : currentCoins.gold;
         return {
           status: 400,
-          error: `Insufficient ${currency}. Need ${itemPrice} ${currency}, have ${available}`
+          error: `Insufficient ${currency}. Need ${itemPrice} ${currency}, have ${available}`,
         };
       }
     } else {
@@ -190,7 +230,7 @@ export class FarmRPGService {
       if (totalCost > availableCoins) {
         return {
           status: 400,
-          error: `Insufficient ${currency}. Need ${totalCost} ${currency}, have ${availableCoins}`
+          error: `Insufficient ${currency}. Need ${totalCost} ${currency}, have ${availableCoins}`,
         };
       }
     }
@@ -200,7 +240,7 @@ export class FarmRPGService {
     if (spaceAvailable <= 0) {
       return {
         status: 400,
-        error: `Inventory full. You have ${currentInventory}/${INVENTORY_CAP} items.`
+        error: `Inventory full. You have ${currentInventory}/${INVENTORY_CAP} items.`,
       };
     }
 
@@ -215,7 +255,7 @@ export class FarmRPGService {
       return { status: result.status, error: result.error };
     }
 
-    const responseText = result.data!.trim();
+    const responseText = result.data?.trim() || "";
     const isSuccess = responseText.toLowerCase() === "success";
     const isNumericResponse = /^\d+$/.test(responseText);
 
@@ -230,12 +270,13 @@ export class FarmRPGService {
     const totalCost = itemPrice * quantityToBuy;
     const remainingCoins = {
       silver: currency === "Silver" ? currentCoins.silver - totalCost : currentCoins.silver,
-      gold: currency === "Gold" ? currentCoins.gold - totalCost : currentCoins.gold
+      gold: currency === "Gold" ? currentCoins.gold - totalCost : currentCoins.gold,
     };
 
     // Get updated item details to get current inventory count
     const updatedItemResult = await this.getItemDetails(itemId);
-    const finalInventory = updatedItemResult.data?.inventory?.quantity || (currentInventory + quantityToBuy);
+    const finalInventory =
+      updatedItemResult.data?.inventory?.quantity || currentInventory + quantityToBuy;
 
     return {
       status: 200,
@@ -245,14 +286,16 @@ export class FarmRPGService {
         quantityPurchased: quantityToBuy,
         currentInventory: finalInventory,
         totalCost: { amount: totalCost, currency },
-        remainingCoins
-      }
+        remainingCoins,
+      },
     };
   }
 
   // === INVENTORY METHODS ===
 
-  async getInventory(categoryFilter?: InventoryCategory | InventoryCategory[]): Promise<{ status: number; data?: InventoryData; error?: string }> {
+  async getInventory(
+    categoryFilter?: InventoryCategory | InventoryCategory[],
+  ): Promise<{ status: number; data?: InventoryData; error?: string }> {
     const result = await this.http.get("/inventory.php");
 
     if (result.error) {
@@ -260,17 +303,17 @@ export class FarmRPGService {
     }
 
     try {
-      const $ = this.http.parseHtml(result.data!);
+      const $ = this.http.parseHtml(result.data || "");
       const categories: InventoryCategoryData[] = [];
 
       // Parse each category group
       $(".list-group").each((_, groupElem) => {
         const groupTitle = $(groupElem).find(".list-group-title").text().trim();
-        
+
         // Determine category from group title
         let category: InventoryCategory | null = null;
         const lowerTitle = groupTitle.toLowerCase();
-        
+
         if (lowerTitle.includes("items")) category = "items";
         else if (lowerTitle.includes("fish")) category = "fish";
         else if (lowerTitle.includes("crops")) category = "crops";
@@ -286,40 +329,43 @@ export class FarmRPGService {
         const items: InventoryItem[] = [];
 
         // Parse items in this category
-        $(groupElem).find("li").not(".list-group-title").each((_, itemElem) => {
-          const itemLink = $(itemElem).find("a[href^='item.php']");
-          
-          // Skip if no link (e.g., "None" entries)
-          if (itemLink.length === 0) return;
+        $(groupElem)
+          .find("li")
+          .not(".list-group-title")
+          .each((_, itemElem) => {
+            const itemLink = $(itemElem).find("a[href^='item.php']");
 
-          const href = itemLink.attr("href") || "";
-          const idMatch = href.match(/id=(\d+)/);
-          const itemId = idMatch?.[1] ? this.http.parseNumber(idMatch[1]) : 0;
+            // Skip if no link (e.g., "None" entries)
+            if (itemLink.length === 0) return;
 
-          const itemName = $(itemElem).find(".item-title strong").text().trim();
-          
-          // Get description (text after <br/> in item-title)
-          const itemTitleHtml = $(itemElem).find(".item-title").html() || "";
-          const descMatch = itemTitleHtml.match(/<span[^>]*>([^<]+)<\/span>/);
-          const description = descMatch?.[1]?.trim() || "";
+            const href = itemLink.attr("href") || "";
+            const idMatch = href.match(/id=(\d+)/);
+            const itemId = idMatch?.[1] ? this.http.parseNumber(idMatch[1]) : 0;
 
-          const quantityText = $(itemElem).find(".item-after").text().trim();
-          const quantity = this.http.parseNumber(quantityText);
+            const itemName = $(itemElem).find(".item-title strong").text().trim();
 
-          // Get image
-          const imgSrc = $(itemElem).find(".item-media img").attr("src") || "";
-          const imageUrl = imgSrc ? `https://farmrpg.com${imgSrc}` : "";
+            // Get description (text after <br/> in item-title)
+            const itemTitleHtml = $(itemElem).find(".item-title").html() || "";
+            const descMatch = itemTitleHtml.match(/<span[^>]*>([^<]+)<\/span>/);
+            const description = descMatch?.[1]?.trim() || "";
 
-          if (itemId && itemName && quantity > 0) {
-            items.push({
-              id: itemId,
-              name: itemName,
-              description,
-              quantity,
-              imageUrl
-            });
-          }
-        });
+            const quantityText = $(itemElem).find(".item-after").text().trim();
+            const quantity = this.http.parseNumber(quantityText);
+
+            // Get image
+            const imgSrc = $(itemElem).find(".item-media img").attr("src") || "";
+            const imageUrl = imgSrc ? `https://farmrpg.com${imgSrc}` : "";
+
+            if (itemId && itemName && quantity > 0) {
+              items.push({
+                id: itemId,
+                name: itemName,
+                description,
+                quantity,
+                imageUrl,
+              });
+            }
+          });
 
         if (items.length > 0) {
           categories.push({ category, items });
@@ -330,7 +376,7 @@ export class FarmRPGService {
       const statsHtml = $(".card-content-inner:contains('Your inventory contains')").html() || "";
       const uniqueItemsMatch = statsHtml.match(/contains\s+<strong>(\d+)<\/strong>\s+unique items/);
       const totalItemsMatch = statsHtml.match(/and\s+<strong>(\d+)<\/strong>\s+items in total/);
-      
+
       // Parse max capacity from the top card
       const capacityHtml = $(".card-content-inner:contains('cannot have more than')").html() || "";
       const maxCapacityMatch = capacityHtml.match(/more than\s+<strong>(\d+)<\/strong>/);
@@ -338,42 +384,48 @@ export class FarmRPGService {
       const stats: InventoryStats = {
         uniqueItems: uniqueItemsMatch?.[1] ? this.http.parseNumber(uniqueItemsMatch[1]) : 0,
         totalItems: totalItemsMatch?.[1] ? this.http.parseNumber(totalItemsMatch[1]) : 0,
-        maxCapacity: maxCapacityMatch?.[1] ? this.http.parseNumber(maxCapacityMatch[1]) : 200
+        maxCapacity: maxCapacityMatch?.[1] ? this.http.parseNumber(maxCapacityMatch[1]) : 200,
       };
 
       // Filter categories if categoryFilter is provided
       let filteredCategories = categories;
-      
+
       if (categoryFilter) {
         const filters = Array.isArray(categoryFilter) ? categoryFilter : [categoryFilter];
-        filteredCategories = categories.filter(cat => filters.includes(cat.category));
+        filteredCategories = categories.filter((cat) => filters.includes(cat.category));
       }
 
       return {
         status: 200,
         data: {
           categories: filteredCategories,
-          stats
-        }
+          stats,
+        },
       };
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Parse error"
+        error: error instanceof Error ? error.message : "Parse error",
       };
     }
   }
 
-  async getBaitInfo(locationId: number = 1): Promise<{ status: number; data?: { baitName: string; baitCount: number; streak: number; bestStreak: number }; error?: string }> {
+  async getBaitInfo(locationId: number = 1): Promise<{
+    status: number;
+    data?: { baitName: string; baitCount: number; streak: number; bestStreak: number };
+    error?: string;
+  }> {
     const cachebuster = Date.now();
-    const result = await this.http.get(`/worker.php?cachebuster=${cachebuster}&go=baitarea&id=${locationId}`);
+    const result = await this.http.get(
+      `/worker.php?cachebuster=${cachebuster}&go=baitarea&id=${locationId}`,
+    );
 
     if (result.error) {
       return { status: result.status, error: result.error };
     }
 
     try {
-      const $ = this.http.parseHtml(result.data!);
+      const $ = this.http.parseHtml(result.data || "");
 
       // Parse bait count from "Worms: <strong id="baitleft">0</strong>"
       const baitCountText = $("#baitleft").text().trim();
@@ -388,7 +440,9 @@ export class FarmRPGService {
       const bestStreakMatch = streakText.match(/Best:\s*<strong>([\d,]+)<\/strong>/);
 
       const streak = streakMatch?.[1] ? this.http.parseNumber(streakMatch[1].replace(/,/g, "")) : 0;
-      const bestStreak = bestStreakMatch?.[1] ? this.http.parseNumber(bestStreakMatch[1].replace(/,/g, "")) : 0;
+      const bestStreak = bestStreakMatch?.[1]
+        ? this.http.parseNumber(bestStreakMatch[1].replace(/,/g, ""))
+        : 0;
 
       return {
         status: 200,
@@ -396,46 +450,51 @@ export class FarmRPGService {
           baitName,
           baitCount,
           streak,
-          bestStreak
-        }
+          bestStreak,
+        },
       };
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Parse error"
+        error: error instanceof Error ? error.message : "Parse error",
       };
     }
   }
 
   // === FISHING METHODS ===
 
-  async catchFish(locationId: number = 1, baitAmount: number = 1): Promise<{ status: number; data?: FishCatchData; error?: string }> {
+  async catchFish(
+    locationId: number = 1,
+    baitAmount: number = 1,
+  ): Promise<{ status: number; data?: FishCatchData; error?: string }> {
     // Generate random parameters
     const r = Math.floor(Math.random() * 1000000);
     const p = Math.floor(Math.random() * 1000);
     const q = Math.floor(Math.random() * 1000);
 
-    const result = await this.http.post(`/worker.php?go=fishcaught&id=${locationId}&r=${r}&bamt=${baitAmount}&p=${p}&q=${q}`);
+    const result = await this.http.post(
+      `/worker.php?go=fishcaught&id=${locationId}&r=${r}&bamt=${baitAmount}&p=${p}&q=${q}`,
+    );
 
     if (result.error) {
       return { status: result.status, error: result.error };
     }
 
     try {
-      const $ = this.http.parseHtml(result.data!);
+      const $ = this.http.parseHtml(result.data || "");
 
       // Extract fish name from alt attribute
       const fishName = $("img.itemimg").attr("alt")?.trim() || "";
-      
+
       // Extract fish image from src attribute
       const fishImageSrc = $("img.itemimg").attr("src")?.trim() || "";
       const fishImage = fishImageSrc ? `https://farmrpg.com${fishImageSrc}` : "";
 
       // Extract fish ID from image filename
       // Try numeric format first (e.g., /img/items/7718.PNG -> 7718)
-      let fishIdMatch = fishImageSrc.match(/\/(\d+)\./);
+      const fishIdMatch = fishImageSrc.match(/\/(\d+)\./);
       let fishId = fishIdMatch?.[1] ? this.http.parseNumber(fishIdMatch[1]) : 0;
-      
+
       // If no numeric ID found, extract from filename (e.g., yellowperch.png -> 0, we'll use name as fallback)
       if (fishId === 0 && fishImageSrc) {
         // For non-numeric filenames, we can't determine the ID, so leave it as 0
@@ -465,36 +524,39 @@ export class FarmRPGService {
           catch: {
             id: fishId,
             name: fishName,
-            image: fishImage
+            image: fishImage,
           },
           stats: {
             totalFishCaught,
-            fishingXpPercent
+            fishingXpPercent,
           },
           resources: {
             stamina,
-            bait
-          }
-        }
+            bait,
+          },
+        },
       };
     } catch (error) {
       return {
         status: 500,
-        error: error instanceof Error ? error.message : "Parse error"
+        error: error instanceof Error ? error.message : "Parse error",
       };
     }
   }
 
   // === SELLING METHODS ===
 
-  async sellItem(itemId: number, quantity: number): Promise<{ status: number; data?: number; error?: string }> {
+  async sellItem(
+    itemId: number,
+    quantity: number,
+  ): Promise<{ status: number; data?: number; error?: string }> {
     const result = await this.http.post(`/worker.php?go=sellitem&id=${itemId}&qty=${quantity}`);
 
     if (result.error) {
       return { status: result.status, error: result.error };
     }
 
-    const responseText = result.data!.trim();
+    const responseText = result.data?.trim() || "";
 
     if (responseText.toLowerCase() !== "success") {
       return { status: 400, error: `Sell failed: ${responseText}` };
@@ -503,24 +565,28 @@ export class FarmRPGService {
     return { status: 200, data: quantity };
   }
 
-  async sellAllItems(categoryFilter?: InventoryCategory): Promise<{ status: number; data?: { totalSilver: number; itemsSold: number; itemTypes: number }; error?: string }> {
+  async sellAllItems(categoryFilter?: InventoryCategory): Promise<{
+    status: number;
+    data?: { totalSilver: number; itemsSold: number; itemTypes: number };
+    error?: string;
+  }> {
     const inventoryResult = await this.getInventory();
     if (inventoryResult.error || !inventoryResult.data) {
       return {
         status: inventoryResult.status,
-        error: inventoryResult.error || "Failed to get inventory"
+        error: inventoryResult.error || "Failed to get inventory",
       };
     }
 
     // Collect all items to sell, optionally filtered by category
-    let itemsToSell: InventoryItem[] = [];
-    
+    const itemsToSell: InventoryItem[] = [];
+
     for (const categoryData of inventoryResult.data.categories) {
       if (!categoryFilter || categoryData.category === categoryFilter) {
         itemsToSell.push(...categoryData.items);
       }
     }
-    
+
     if (itemsToSell.length === 0) {
       return { status: 200, data: { totalSilver: 0, itemsSold: 0, itemTypes: 0 } };
     }
@@ -543,11 +609,11 @@ export class FarmRPGService {
 
     return {
       status: 200,
-      data: { 
-        totalSilver: silverEarned, 
+      data: {
+        totalSilver: silverEarned,
         itemsSold,
-        itemTypes: itemsToSell.length
-      }
+        itemTypes: itemsToSell.length,
+      },
     };
   }
 }

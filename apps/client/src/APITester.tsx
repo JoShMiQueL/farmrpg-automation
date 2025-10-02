@@ -1,14 +1,22 @@
+import { type FormEvent, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useRef, type FormEvent } from "react";
 
 export function APITester() {
   const responseInputRef = useRef<HTMLTextAreaElement>(null);
 
   const testEndpoint = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!responseInputRef.current) return;
 
     try {
       const form = e.currentTarget;
@@ -19,9 +27,9 @@ export function APITester() {
       const res = await fetch(url, { method });
 
       const data = await res.json();
-      responseInputRef.current!.value = JSON.stringify(data, null, 2);
+      responseInputRef.current.value = JSON.stringify(data, null, 2);
     } catch (error) {
-      responseInputRef.current!.value = String(error);
+      responseInputRef.current.value = String(error);
     }
   };
 

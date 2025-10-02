@@ -16,10 +16,15 @@
     "test": "bun --cwd apps/server test",
     "test:coverage": "bun --cwd apps/server test --coverage",
     "test:watch": "bun --cwd apps/server test --watch",
-    "typecheck": "bun --cwd apps/server x tsc --noEmit",
+    "typecheck": "cd apps/server && bun x tsc --noEmit",
+    "check": "biome check --write .",
+    "lint": "biome lint --write .",
+    "format": "biome format --write .",
+    "ci": "biome ci .",
     "prepare": "husky"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
     "@types/bun": "latest",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7"

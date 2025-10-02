@@ -1,9 +1,9 @@
 // API routes configuration
 import { Hono } from "hono";
-import { PlayerController } from "../controllers/PlayerController";
-import { ItemController } from "../controllers/ItemController";
-import { InventoryController } from "../controllers/InventoryController";
 import { FishController } from "../controllers/FishController";
+import { InventoryController } from "../controllers/InventoryController";
+import { ItemController } from "../controllers/ItemController";
+import { PlayerController } from "../controllers/PlayerController";
 
 const api = new Hono();
 

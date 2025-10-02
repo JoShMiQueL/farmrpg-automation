@@ -1,25 +1,25 @@
 // Controller for item-related endpoints
 import type { Context } from "hono";
-import { farmRPGService } from "../services";
-import type { ItemResponse } from "../models/Item";
+import { type ApiResponse, ErrorCode } from "../models/ApiResponse";
 import type { BuyItemResponse } from "../models/BuyItem";
-import { ErrorCode, type ApiResponse } from "../models/ApiResponse";
+import type { ItemResponse } from "../models/Item";
+import { farmRPGService } from "../services";
 
 export class ItemController {
   private farmRPGService = farmRPGService;
 
   async getItemDetails(c: Context) {
     const itemId = c.req.param("id");
-    const itemIdNum = Number.parseInt(itemId);
+    const itemIdNum = Number.parseInt(itemId, 10);
 
-    if (!itemId || isNaN(itemIdNum)) {
+    if (!itemId || Number.isNaN(itemIdNum)) {
       const errorResponse: ItemResponse = {
         success: false,
         error: {
           code: ErrorCode.VALIDATION_ERROR,
           message: "Invalid item ID. Must be a number.",
-          statusCode: 400
-        }
+          statusCode: 400,
+        },
       };
       return c.json(errorResponse, 400);
     }
@@ -30,10 +30,15 @@ export class ItemController {
       const errorResponse: ItemResponse = {
         success: false,
         error: {
-          code: result.status === 404 ? ErrorCode.NOT_FOUND : result.status === 502 ? ErrorCode.UPSTREAM_ERROR : ErrorCode.INTERNAL_ERROR,
+          code:
+            result.status === 404
+              ? ErrorCode.NOT_FOUND
+              : result.status === 502
+                ? ErrorCode.UPSTREAM_ERROR
+                : ErrorCode.INTERNAL_ERROR,
           message: result.error,
-          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined
-        }
+          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined,
+        },
       };
       return c.json(errorResponse, result.status as 404 | 500 | 502);
     }
@@ -41,7 +46,7 @@ export class ItemController {
     const successResponse: ItemResponse = {
       success: true,
       data: result.data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return c.json(successResponse, 200);
@@ -57,8 +62,8 @@ export class ItemController {
         error: {
           code: ErrorCode.VALIDATION_ERROR,
           message: "Invalid itemId. Must be a number.",
-          statusCode: 400
-        }
+          statusCode: 400,
+        },
       };
       return c.json(errorResponse, 400);
     }
@@ -69,8 +74,8 @@ export class ItemController {
         error: {
           code: ErrorCode.VALIDATION_ERROR,
           message: "Invalid quantity. Must be a number (-1 to buy all available).",
-          statusCode: 400
-        }
+          statusCode: 400,
+        },
       };
       return c.json(errorResponse, 400);
     }
@@ -81,10 +86,15 @@ export class ItemController {
       const errorResponse: BuyItemResponse = {
         success: false,
         error: {
-          code: result.status === 400 ? ErrorCode.VALIDATION_ERROR : result.status === 502 ? ErrorCode.UPSTREAM_ERROR : ErrorCode.INTERNAL_ERROR,
+          code:
+            result.status === 400
+              ? ErrorCode.VALIDATION_ERROR
+              : result.status === 502
+                ? ErrorCode.UPSTREAM_ERROR
+                : ErrorCode.INTERNAL_ERROR,
           message: result.error,
-          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined
-        }
+          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined,
+        },
       };
       return c.json(errorResponse, result.status as 400 | 500 | 502);
     }
@@ -92,7 +102,7 @@ export class ItemController {
     const successResponse: BuyItemResponse = {
       success: true,
       data: result.data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return c.json(successResponse, 200);
@@ -108,8 +118,8 @@ export class ItemController {
         error: {
           code: ErrorCode.VALIDATION_ERROR,
           message: "Invalid itemId. Must be a number.",
-          statusCode: 400
-        }
+          statusCode: 400,
+        },
       };
       return c.json(errorResponse, 400);
     }
@@ -120,8 +130,8 @@ export class ItemController {
         error: {
           code: ErrorCode.VALIDATION_ERROR,
           message: "Invalid quantity. Must be a positive number.",
-          statusCode: 400
-        }
+          statusCode: 400,
+        },
       };
       return c.json(errorResponse, 400);
     }
@@ -132,10 +142,15 @@ export class ItemController {
       const errorResponse: ApiResponse<number> = {
         success: false,
         error: {
-          code: result.status === 400 ? ErrorCode.VALIDATION_ERROR : result.status === 502 ? ErrorCode.UPSTREAM_ERROR : ErrorCode.INTERNAL_ERROR,
+          code:
+            result.status === 400
+              ? ErrorCode.VALIDATION_ERROR
+              : result.status === 502
+                ? ErrorCode.UPSTREAM_ERROR
+                : ErrorCode.INTERNAL_ERROR,
           message: result.error,
-          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined
-        }
+          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined,
+        },
       };
       return c.json(errorResponse, result.status as 400 | 500 | 502);
     }
@@ -144,9 +159,9 @@ export class ItemController {
       success: true,
       data: {
         itemId,
-        quantitySold: result.data || 0
+        quantitySold: result.data || 0,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return c.json(successResponse, 200);
@@ -159,21 +174,29 @@ export class ItemController {
     const result = await this.farmRPGService.sellAllItems(onlyCapped || false);
 
     if (result.error) {
-      const errorResponse: ApiResponse<{ totalSilver: number; itemsSold: number; itemTypes: number }> = {
+      const errorResponse: ApiResponse<{
+        totalSilver: number;
+        itemsSold: number;
+        itemTypes: number;
+      }> = {
         success: false,
         error: {
           code: result.status === 502 ? ErrorCode.UPSTREAM_ERROR : ErrorCode.INTERNAL_ERROR,
           message: result.error,
-          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined
-        }
+          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined,
+        },
       };
       return c.json(errorResponse, result.status as 500 | 502);
     }
 
-    const successResponse: ApiResponse<{ totalSilver: number; itemsSold: number; itemTypes: number }> = {
+    const successResponse: ApiResponse<{
+      totalSilver: number;
+      itemsSold: number;
+      itemTypes: number;
+    }> = {
       success: true,
       data: result.data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return c.json(successResponse, 200);

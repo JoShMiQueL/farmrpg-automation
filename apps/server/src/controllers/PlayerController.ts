@@ -1,8 +1,8 @@
 // Controller for player-related endpoints
 import type { Context } from "hono";
-import { farmRPGService } from "../services";
-import type { PlayerStatsResponse } from "../models/PlayerStats";
 import { ErrorCode } from "../models/ApiResponse";
+import type { PlayerStatsResponse } from "../models/PlayerStats";
+import { farmRPGService } from "../services";
 
 export class PlayerController {
   private farmRPGService = farmRPGService;
@@ -16,8 +16,8 @@ export class PlayerController {
         error: {
           code: result.status === 502 ? ErrorCode.UPSTREAM_ERROR : ErrorCode.INTERNAL_ERROR,
           message: result.error,
-          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined
-        }
+          statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined,
+        },
       };
       return c.json(errorResponse, result.status as 500 | 502);
     }
@@ -25,7 +25,7 @@ export class PlayerController {
     const successResponse: PlayerStatsResponse = {
       success: true,
       data: result.data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return c.json(successResponse, 200);

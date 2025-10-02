@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { PlayerController } from "../../src/controllers/PlayerController";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { Context } from "hono";
+import { PlayerController } from "../../src/controllers/PlayerController";
 
 describe("PlayerController", () => {
   let controller: PlayerController;
@@ -9,21 +9,23 @@ describe("PlayerController", () => {
 
   beforeEach(() => {
     mockFarmRPGService = {
-      getPlayerStats: mock(() => Promise.resolve({
-        status: 200,
-        data: {
-          silver: 1234,
-          gold: 56
-        }
-      }))
+      getPlayerStats: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: {
+            silver: 1234,
+            gold: 56,
+          },
+        }),
+      ),
     };
 
     controller = new PlayerController();
-    // @ts-ignore - Replace service for testing
-    controller["farmRPGService"] = mockFarmRPGService;
+    // @ts-expect-error - Replace service for testing
+    controller.farmRPGService = mockFarmRPGService;
 
     mockContext = {
-      json: mock((data: any, status?: number) => data as any)
+      json: mock((data: any, _status?: number) => data as any),
     };
   });
 
@@ -40,7 +42,7 @@ describe("PlayerController", () => {
     test("should handle service errors", async () => {
       mockFarmRPGService.getPlayerStats.mockResolvedValue({
         status: 500,
-        error: "Parse error"
+        error: "Parse error",
       });
 
       const result: any = await controller.getStats(mockContext as Context);
@@ -52,7 +54,7 @@ describe("PlayerController", () => {
     test("should handle upstream errors", async () => {
       mockFarmRPGService.getPlayerStats.mockResolvedValue({
         status: 502,
-        error: "FarmRPG API error"
+        error: "FarmRPG API error",
       });
 
       const result: any = await controller.getStats(mockContext as Context);

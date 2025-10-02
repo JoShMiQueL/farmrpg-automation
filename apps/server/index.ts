@@ -10,7 +10,7 @@ app.use("*", cors());
 // Mount API routes
 app.route("/api", api);
 
-const isDevelopment = process.env.NODE_ENV !== "production";
+const _isDevelopment = process.env.NODE_ENV !== "production";
 const port = process.env.PORT || 3000;
 
 const server = Bun.serve({

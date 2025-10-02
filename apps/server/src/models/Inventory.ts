@@ -9,15 +9,15 @@ export interface InventoryItem {
   imageUrl: string;
 }
 
-export type InventoryCategory = 
-  | "items" 
-  | "fish" 
-  | "crops" 
-  | "seeds" 
-  | "loot" 
-  | "runestones" 
-  | "books" 
-  | "cards" 
+export type InventoryCategory =
+  | "items"
+  | "fish"
+  | "crops"
+  | "seeds"
+  | "loot"
+  | "runestones"
+  | "books"
+  | "cards"
   | "rares";
 
 export interface InventoryCategoryData {

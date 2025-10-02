@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { ItemController } from "../../src/controllers/ItemController";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import type { Context } from "hono";
+import { ItemController } from "../../src/controllers/ItemController";
 
 describe("ItemController", () => {
   let controller: ItemController;
@@ -9,51 +9,59 @@ describe("ItemController", () => {
 
   beforeEach(() => {
     mockFarmRPGService = {
-      getItemDetails: mock(() => Promise.resolve({
-        status: 200,
-        data: {
-          id: 7758,
-          name: "Worms",
-          image: "/img/items/7758.png",
-          buyPrice: { amount: 3, currency: "Silver" },
-          inventory: { quantity: 100 }
-        }
-      })),
-      buyItem: mock(() => Promise.resolve({
-        status: 200,
-        data: {
-          itemId: 7758,
-          itemName: "Worms",
-          quantityPurchased: 10,
-          currentInventory: 110,
-          totalCost: { amount: 30, currency: "Silver" },
-          remainingCoins: { silver: 970, gold: 10 }
-        }
-      })),
-      sellItem: mock(() => Promise.resolve({
-        status: 200,
-        data: 50
-      })),
-      sellAllItems: mock(() => Promise.resolve({
-        status: 200,
-        data: {
-          totalSilver: 1000,
-          itemsSold: 100,
-          itemTypes: 5
-        }
-      }))
+      getItemDetails: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: {
+            id: 7758,
+            name: "Worms",
+            image: "/img/items/7758.png",
+            buyPrice: { amount: 3, currency: "Silver" },
+            inventory: { quantity: 100 },
+          },
+        }),
+      ),
+      buyItem: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: {
+            itemId: 7758,
+            itemName: "Worms",
+            quantityPurchased: 10,
+            currentInventory: 110,
+            totalCost: { amount: 30, currency: "Silver" },
+            remainingCoins: { silver: 970, gold: 10 },
+          },
+        }),
+      ),
+      sellItem: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: 50,
+        }),
+      ),
+      sellAllItems: mock(() =>
+        Promise.resolve({
+          status: 200,
+          data: {
+            totalSilver: 1000,
+            itemsSold: 100,
+            itemTypes: 5,
+          },
+        }),
+      ),
     };
 
     controller = new ItemController();
-    // @ts-ignore - Replace service for testing
-    controller["farmRPGService"] = mockFarmRPGService;
+    // @ts-expect-error - Replace service for testing
+    controller.farmRPGService = mockFarmRPGService;
 
     mockContext = {
       req: {
         param: mock(() => "7758"),
-        json: mock(() => Promise.resolve({ itemId: 7758, quantity: 10 }))
+        json: mock(() => Promise.resolve({ itemId: 7758, quantity: 10 })),
       },
-      json: mock((data: any, status?: number) => data as any)
+      json: mock((data: any, _status?: number) => data as any),
     };
   });
 
@@ -78,7 +86,7 @@ describe("ItemController", () => {
     test("should handle service errors", async () => {
       mockFarmRPGService.getItemDetails.mockResolvedValue({
         status: 404,
-        error: "Item not found"
+        error: "Item not found",
       });
 
       const result: any = await controller.getItemDetails(mockContext as Context);
@@ -118,7 +126,7 @@ describe("ItemController", () => {
     test("should handle insufficient funds error", async () => {
       mockFarmRPGService.buyItem.mockResolvedValue({
         status: 400,
-        error: "Insufficient Silver"
+        error: "Insufficient Silver",
       });
 
       const result: any = await controller.buyItem(mockContext as Context);
@@ -180,7 +188,7 @@ describe("ItemController", () => {
     test("should handle service errors", async () => {
       mockFarmRPGService.sellAllItems.mockResolvedValue({
         status: 500,
-        error: "Internal error"
+        error: "Internal error",
       });
 
       const result: any = await controller.sellAllItems(mockContext as Context);

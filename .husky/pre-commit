@@ -1,2 +1,12 @@
 #!/bin/sh
-cd apps/server && bun test && bun x tsc --noEmit
+# Run Biome format and fix issues automatically
+bun run format
+
+# Run Biome lint and fix fixable issues automatically
+bun run lint
+
+# Run Biome check to ensure no errors are present
+bun run check
+
+# Run tests and typecheck
+bun run test && bun run typecheck
