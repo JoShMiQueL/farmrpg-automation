@@ -1,18 +1,17 @@
-# FarmRPG Automation
+# FarmRPG API
 
-A full-stack TypeScript application for FarmRPG automation with monorepo architecture using Bun workspaces.
+A TypeScript-based REST API for FarmRPG with monorepo architecture using Bun workspaces.
 
 ## ✨ Features
 
 ### Server (API)
-- **Fishing Bot** - Automated fishing with smart inventory management
 - **Item Management** - Buy/sell items with automatic 200 cap handling
 - **Inventory Tracking** - Real-time inventory with cap detection
 - **Player Stats** - Silver/gold balance tracking
+- **Smart Cap Handling** - Automatic inventory cap detection and management
 
 ### Client (UI)
 - **React 19** - Modern UI with shadcn/ui components
-- **Real-time Updates** - Live bot status and stats
 - **Responsive Design** - TailwindCSS styling
 - **API Integration** - Seamless backend communication
 
@@ -81,38 +80,13 @@ bun run start
 - `GET /api/player/stats` - Get silver/gold balance
 
 ### Inventory
-- `GET /api/inventory` - Get all items with cap detection
+- `GET /api/inventory` - Get all items with cap detection and total value
 
 ### Items
-- `GET /api/item/:id` - Get item details
-- `POST /api/item/buy` - Buy items (respects 200 cap)
-- `POST /api/item/sell` - Sell specific item
-- `POST /api/item/sell-all` - Sell all or capped items
-
-### Fishing Bot
-- `POST /api/bot/fishing` - Start/stop bot
-- `GET /api/bot/fishing/status` - Get bot status
-
-## 🎣 Fishing Bot
-
-### Automation Features
-1. Catches fish every 2-6 seconds (configurable)
-2. Auto-buys worms when out of bait
-3. Auto-sells items at 200 cap
-4. Handles insufficient silver
-
-### Configuration
-```json
-{
-  "action": "start",
-  "config": {
-    "minDelay": 2,
-    "maxDelay": 6
-  }
-}
-```
-
-**Smart Bait Purchasing:** Automatically buys maximum bait based on available silver and inventory cap (up to 200).
+- `GET /api/item/:id` - Get item details including price and inventory
+- `POST /api/item/buy` - Buy items (automatically respects 200 cap)
+- `POST /api/item/sell` - Sell specific item by ID and quantity
+- `POST /api/item/sell-all` - Sell all items or only capped items
 
 ## 📊 Technologies
 
@@ -142,10 +116,8 @@ bun run start
 
 ## 📚 Documentation
 
-- **[Development Guide](apps/DEVELOPMENT.md)** - Complete workflow
-- **[Client Docs](apps/client/README.md)** - Frontend setup
-- **[Server API Docs](apps/server/README.md)** - API endpoints
-- **[MVC Architecture](apps/server/MVC_ARCHITECTURE.md)** - Backend patterns
+- **[Server API Docs](apps/server/README.md)** - Detailed API documentation
+- **[MVC Architecture](apps/server/MVC_ARCHITECTURE.md)** - Backend architecture patterns
 
 ## 🔧 Code Quality
 
