@@ -17,14 +17,12 @@
     "test:coverage": "bun --cwd apps/server test --coverage",
     "test:watch": "bun --cwd apps/server test --watch",
     "typecheck": "bun --cwd apps/server x tsc --noEmit",
-    "hooks:install": "bun run scripts/install-hooks.ts",
-    "precommit": "bun run scripts/pre-commit.ts",
-    "prepush": "bun run scripts/pre-push.ts",
-    "prepare": "bun run hooks:install"
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7"
   },
   "trustedDependencies": [
     "esbuild"

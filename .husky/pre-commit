@@ -1,0 +1,2 @@
+#!/bin/sh
+cd apps/server && bun test && bun x tsc --noEmit
