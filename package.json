@@ -12,7 +12,15 @@
     "build": "bun --cwd apps/client build",
     "build:client": "bun --cwd apps/client build",
     "start": "bun --cwd apps/server start",
-    "start:server": "bun --cwd apps/server start"
+    "start:server": "bun --cwd apps/server start",
+    "test": "bun --cwd apps/server test",
+    "test:coverage": "bun --cwd apps/server test --coverage",
+    "test:watch": "bun --cwd apps/server test --watch",
+    "typecheck": "bun --cwd apps/server x tsc --noEmit",
+    "hooks:install": "bun run scripts/install-hooks.ts",
+    "precommit": "bun run scripts/pre-commit.ts",
+    "prepush": "bun run scripts/pre-push.ts",
+    "prepare": "bun run hooks:install"
   },
   "devDependencies": {
     "@types/bun": "latest",
