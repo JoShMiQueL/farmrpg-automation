@@ -1,28 +1,37 @@
-# FarmRPG Server
+# FarmRPG API Server
 
-FarmRPG API backend built with Hono and Bun.
+REST API backend for FarmRPG built with Hono and Bun.
 
 ## Technologies
 
-- **Bun**: Ultra-fast JavaScript runtime
-- **Hono**: Minimalist web framework
-- **Cheerio**: Web scraping and HTML parsing
-- **TypeScript**: Static typing
+- **Bun** - Ultra-fast JavaScript runtime
+- **Hono** - Minimalist web framework
+- **Cheerio** - HTML parsing
+- **TypeScript** - Static typing
 
 ## MVC Architecture
 
-This server follows the **Model-View-Controller** pattern. See [MVC_ARCHITECTURE.md](./MVC_ARCHITECTURE.md) for more details.
+This server follows the **Model-View-Controller** pattern. See [MVC_ARCHITECTURE.md](./MVC_ARCHITECTURE.md) for details.
 
 ```
 src/
-├── controllers/     # Controller logic
-│   └── FishController.ts
-├── models/          # Data types and models
-│   └── FishCatch.ts
-├── routes/          # Route definitions
+├── controllers/     # Request handlers
+│   ├── ItemController.ts
+│   ├── PlayerController.ts
+│   └── InventoryController.ts
+├── models/          # TypeScript interfaces
+│   ├── Item.ts
+│   ├── PlayerStats.ts
+│   ├── Inventory.ts
+│   └── ApiResponse.ts
+├── routes/          # API routes
 │   └── api.ts
-└── services/        # External services
-    └── FarmRPGService.ts
+├── services/        # Business logic
+│   ├── FarmRPGService.ts
+│   └── HttpClient.ts
+└── utils/           # Helpers & constants
+    ├── async.ts
+    └── constants.ts
 ```
 
 ## Development
@@ -35,52 +44,148 @@ bun run dev:server
 bun run dev
 ```
 
-The server runs at **http://localhost:3000** with automatic hot reload.
-## Endpoints
+Server runs at **http://localhost:3000** with hot reload.
+## API Endpoints
 
-### Player API
-- `GET /api/player/stats` - Get player's current coins (Silver & Gold)
+### Player Stats
+#### Get Player Stats
+- `GET /api/player/stats` - Get current silver and gold balance
 
 **Response:**
 ```json
 {
   "success": true,
   "data": {
-    "silver": 500,
-    "gold": 10
+    "silver": 61981,
+    "gold": 85
   },
-  "timestamp": "2025-10-02T13:18:55.000Z"
-}
-```
-### Fishing Bot API
-
-#### Start/Stop/Status Bot
-- `POST /api/bot/fishing` - Control the fish bot
-
-**Configuration:**
-```json
-{
-  "action": "start",
-  "config": {
-    "minDelay": 2,
-    "maxDelay": 6
-  }
+  "timestamp": "2025-10-02T13:7758:55.000Z"
 }
 ```
 
-**Note:** Bot automatically buys maximum bait based on available silver and 200 inventory cap.
+### Inventory
+#### Get Inventory
+- `GET /api/inventory` - Get all items with cap detection and total value
 
-**Stop Bot:**
+**Response:**
 ```json
 {
-  "action": "stop"
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 7758,
+        "name": "Worms",
+        "image": "https://farmrpg.com/img/items/7758.png",
+        "quantity": 190,
+        "isAtCap": false
+      }
+    ],
+    "totalValue": 24500,
+    "totalItems": 381
+  },
+  "timestamp": "2025-10-02T13:20:00.000Z"
 }
 ```
 
-**Get Status:**
+### Item Management
+#### Get Item Details
+- `GET /api/item/:id` - Get detailed information about an item
+
+**Response:**
 ```json
 {
-  "action": "status"
+  "success": true,
+  "data": {
+    "id": 7758,
+    "name": "Worms",
+    "image": "https://farmrpg.com/img/items/7758.png",
+    "buyPrice": {
+      "amount": 3,
+      "currency": "Silver"
+    },
+    "sellPrice": 1,
+    "inventory": {
+      "quantity": 190,
+      "isAtCap": false
+    }
+  },
+  "timestamp": "2025-10-02T13:25:30.000Z"
+}
+```
+
+#### Buy Item
+- `POST /api/item/buy` - Purchase an item from the store
+
+**Request:**
+```json
+{
+  "itemId": 7758,
+  "quantity": 10
+}
+```
+
+**Special:** 
+- Use `quantity: -1` to buy all affordable with current silver/gold
+- Automatically respects 200 item inventory cap
+- Example: If you have 165 items and request 200, it will buy only 35
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "itemId": 7758,
+    "itemName": "Worms",
+    "quantityPurchased": 10,
+    "currentInventory": 200,
+    "totalCost": {
+      "amount": 30,
+      "currency": "Silver"
+    },
+    "remainingCoins": {
+      "silver": 61951,
+      "gold": 85
+    }
+  },
+  "timestamp": "2025-10-02T13:25:41.000Z"
+}
+```
+
+**Error Response (Insufficient Funds):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Insufficient Silver. Need 300 Silver, have 100",
+    "statusCode": 400
+  },
+  "timestamp": "2025-10-02T13:25:41.000Z"
+}
+```
+
+**Error Response (Inventory Full):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Inventory full. You have 200/200 items.",
+    "statusCode": 400
+  },
+  "timestamp": "2025-10-02T13:25:41.000Z"
+}
+```
+
+#### Sell Item
+- `POST /api/item/sell` - Sell a specific item
+
+**Request:**
+```json
+{
+  "itemId": 7758,
+  "quantity": 50
 }
 ```
 
@@ -89,15 +194,85 @@ The server runs at **http://localhost:3000** with automatic hot reload.
 {
   "success": true,
   "data": {
-    "isRunning": true,
-    "totalFishCaught": 45,
-    "totalBaitUsed": 45,
-    "totalBaitPurchased": 100,
-    "totalSilverSpent": 300,
-    "totalSilverEarned": 150,
-    "currentBait": 55,
-    "currentSilver": 1126,
-    "currentFishCount": 45,
+    "itemId": 7758,
+    "quantitySold": 50
+  },
+  "timestamp": "2025-10-02T13:30:00.000Z"
+}
+```
+
+#### Sell All Items
+- `POST /api/item/sell-all` - Sell all items or only capped items
+
+**Request (sell all):**
+```json
+{}
+```
+
+**Request (sell only capped):**
+```json
+{
+  "onlyCapped": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalSilver": 24000,
+    "itemsSold": 381,
+    "itemTypes": 5
+  },
+  "timestamp": "2025-10-02T13:35:00.000Z"
+}
+```
+
+## Error Codes
+
+All endpoints use consistent error responses:
+
+- `VALIDATION_ERROR` - Invalid input (400)
+- `NOT_FOUND` - Resource not found (404)
+- `INTERNAL_ERROR` - Server error (500)
+- `UPSTREAM_ERROR` - FarmRPG API error (502)
+
+## Features
+
+### Smart Inventory Management
+- Automatic 200 item cap detection
+- Buy operations respect current inventory
+- Sell capped items automatically
+
+### Consistent API Responses
+- All responses follow `ApiResponse<T>` format
+- Timestamps on all responses
+- Detailed error messages
+
+### Type Safety
+- Full TypeScript coverage
+- Validated request/response types
+- Runtime type checking
+
+## Configuration
+
+Create `.env` file:
+```env
+PORT=3000
+NODE_ENV=development
+FARMRPG_COOKIE="your_cookie_here"
+```
+
+Get your cookie from browser DevTools → Application → Cookies → farmrpg.com
+
+## Architecture Highlights
+
+- **MVC Pattern** - Clean separation of concerns
+- **Dependency Injection** - Shared service instances
+- **Error Handling** - Consistent error responses
+- **Type Safety** - Full TypeScript
+- **Constants** - Centralized configuration
     "lastAction": "Caught Minnow! (Bait left: 55)",
     "startTime": "2025-10-02T13:50:00.000Z",
     "errors": []
@@ -142,7 +317,7 @@ The server runs at **http://localhost:3000** with automatic hot reload.
         "price": 12,
         "totalValue": 2400,
         "isAtCap": true,
-        "imageUrl": "https://farmrpg.com/img/items/7718.PNG"
+        "imageUrl": "https://farmrpg.com/img/items/777758.PNG"
       },
       {
         "id": 215,
@@ -173,14 +348,14 @@ The server runs at **http://localhost:3000** with automatic hot reload.
 #### Get Item Details
 - `GET /api/item/:id` - Get item details including price, description, and crafting use
 
-**Example:** `GET /api/item/18`
+**Example:** `GET /api/item/7758`
 
 **Response:**
 ```json
 {
   "success": true,
   "data": {
-    "id": 18,
+    "id": 7758,
     "name": "Worms",
     "description": "Use this to catch fish",
     "image": "/img/items/7758.png",
@@ -213,7 +388,7 @@ The server runs at **http://localhost:3000** with automatic hot reload.
 **Request:**
 ```json
 {
-  "itemId": 18,
+  "itemId": 7758,
   "quantity": 10
 }
 ```
@@ -228,7 +403,7 @@ The server runs at **http://localhost:3000** with automatic hot reload.
 {
   "success": true,
   "data": {
-    "itemId": 18,
+    "itemId": 7758,
     "itemName": "Worms",
     "quantityPurchased": 10,
     "currentInventory": 25,
