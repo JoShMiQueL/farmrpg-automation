@@ -65,24 +65,36 @@ Server runs at **http://localhost:3000** with hot reload.
 
 ### Inventory
 #### Get Inventory
-- `GET /api/inventory` - Get all items with cap detection and total value
+- `GET /api/inventory` - Get all inventory categories with stats
+- `GET /api/inventory?category=fish` - Get specific category
+- `GET /api/inventory?category=fish,crops` - Get multiple categories (comma-separated)
+
+**Categories:** `items`, `fish`, `crops`, `seeds`, `loot`, `runestones`, `books`, `cards`, `rares`
 
 **Response:**
 ```json
 {
   "success": true,
   "data": {
-    "items": [
+    "categories": [
       {
-        "id": 7758,
-        "name": "Worms",
-        "image": "https://farmrpg.com/img/items/7758.png",
-        "quantity": 190,
-        "isAtCap": false
+        "category": "fish",
+        "items": [
+          {
+            "id": 17,
+            "name": "Drum",
+            "description": "Not an instrument",
+            "quantity": 179,
+            "imageUrl": "https://farmrpg.com/img/items/7718.PNG"
+          }
+        ]
       }
     ],
-    "totalValue": 24500,
-    "totalItems": 381
+    "stats": {
+      "uniqueItems": 8,
+      "totalItems": 407,
+      "maxCapacity": 200
+    }
   },
   "timestamp": "2025-10-02T13:20:00.000Z"
 }
@@ -226,6 +238,58 @@ Server runs at **http://localhost:3000** with hot reload.
     "itemTypes": 5
   },
   "timestamp": "2025-10-02T13:35:00.000Z"
+}
+```
+
+### Fishing
+#### Catch Fish
+- `POST /api/fish/catch` - Catch fish at a location
+
+**Request:**
+```json
+{
+  "locationId": 1,
+  "baitAmount": 1
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "catch": {
+      "id": 0,
+      "name": "Yellow Perch",
+      "image": "https://farmrpg.com/img/items/yellowperch.png"
+    },
+    "stats": {
+      "totalFishCaught": 377,
+      "fishingXpPercent": 7.16
+    },
+    "resources": {
+      "stamina": 50,
+      "bait": 198
+    }
+  },
+  "timestamp": "2025-10-02T18:17:00.000Z"
+}
+```
+
+#### Get Bait Info
+- `GET /api/fish/bait?locationId=1` - Get bait information for a location
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "baitName": "Worms",
+    "baitCount": 199,
+    "streak": 5268,
+    "bestStreak": 5268
+  },
+  "timestamp": "2025-10-02T18:20:00.000Z"
 }
 ```
 

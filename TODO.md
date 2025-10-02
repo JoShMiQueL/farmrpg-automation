@@ -2,36 +2,67 @@
 
 ## 🔄 Refactors
 
-### Inventory System Refactor
+### ✅ Inventory System Refactor (COMPLETED)
 **Priority:** High
 
-**Current Implementation:**
-- Uses `https://farmrpg.com/#!/market.php` to retrieve inventory
-- Returns all items in a flat list
+**Implementation:**
+- ✅ Migrated to `https://farmrpg.com/#!/inventory.php`
+- ✅ Parse items categorized by their types (Items, Fish & Bait, Crops, Seeds, Loot & Treasure, Runestones, Books, Cards, Super Rares)
+- ✅ Added inventory stats (unique items, total items, max capacity)
+- ✅ Better organization with category-based structure
 
-**Planned Changes:**
-- Migrate to `https://farmrpg.com/#!/inventory.php`
-- Parse items categorized by their types (Fish, Crops, Materials, etc.)
-- Better organization and filtering capabilities
+**Changes Made:**
+- ✅ Updated `src/models/Inventory.ts` - Added `InventoryCategory`, `InventoryCategoryData`, and `InventoryStats` types
+- ✅ Updated `src/services/FarmRPGService.ts` - Refactored `getInventory(categoryFilter?)` to parse `/inventory.php` HTML with optional category filtering
+- ✅ Updated `src/controllers/InventoryController.ts` - Added category query parameter support with validation
+- ✅ Removed `getFishInventory()` method (use `getInventory("fish")` instead)
+- ✅ Updated `sellAllItems()` to support optional category filtering
 
-**Benefits:**
-- More accurate inventory data
-- Category-based filtering
-- Better alignment with FarmRPG's actual inventory structure
+**API Endpoints:**
+- `GET /api/inventory` - Returns all categories
+- `GET /api/inventory?category=fish` - Returns only fish items
+- `GET /api/inventory?category=fish,crops` - Returns fish and crops items (comma-separated)
+- `GET /api/inventory?category=crops` - Returns only crops
+- Valid categories: `items`, `fish`, `crops`, `seeds`, `loot`, `runestones`, `books`, `cards`, `rares`
 
-**Files to Modify:**
-- `src/services/FarmRPGService.ts` - Update `getInventory()` method
-- `src/models/Inventory.ts` - Add category types
-- `src/controllers/InventoryController.ts` - Support category filtering
+**Response Structure:**
+```json
+{
+  "success": true,
+  "data": {
+    "categories": [
+      {
+        "category": "fish",
+        "items": [
+          {
+            "id": 17,
+            "name": "Drum",
+            "description": "Not an instrument",
+            "quantity": 179,
+            "imageUrl": "https://farmrpg.com/img/items/7718.PNG"
+          }
+        ]
+      }
+    ],
+    "stats": {
+      "uniqueItems": 8,
+      "totalItems": 407,
+      "maxCapacity": 200
+    }
+  }
+}
+```
 
 ---
 
 ## ✨ New Features
 
-### Catch Fish Endpoint
+### ✅ Catch Fish Endpoint (COMPLETED)
 **Priority:** High
 
-**Endpoint:** `POST /api/fish/catch`
+**Endpoints:**
+- `POST /api/fish/catch` - Catch a fish at a location
+- `GET /api/fish/bait?locationId=1` - Get bait info for a location
 
 **Request:**
 ```json
@@ -40,40 +71,6 @@
   "baitAmount": 1
 }
 ```
-
-**Implementation Details:**
-
-**API Call:**
-```
-POST https://farmrpg.com/worker.php?go=fishcaught&id={locationId}&r={random}&bamt={baitAmount}&p={p}&q={q}
-```
-
-**Parameters:**
-- `id` - Location ID (e.g., 1 for Farm Pond)
-- `r` - Random number (0-999999)
-- `bamt` - Bait amount (default: 1)
-- `p` - Unknown parameter (observed: 505, 481)
-- `q` - Unknown parameter (observed: 716, 803)
-
-**Response HTML Example:**
-```html
-<img src='/img/items/7718.PNG' alt='Drum' class='itemimg' ><br/>Drum
-<span style='display:none'>
-  <div id="fishcnt">275</div>
-  <div id="fishingpb">86.51</div>
-  <div id="staminacnt">50</div>
-  <div id="baitcnt">101</div>
-</span>
-```
-
-**Parsing Strategy:**
-1. Extract fish name from `alt` attribute: `alt='Drum'`
-2. Extract fish image from `src` attribute: `/img/items/7718.PNG`
-3. Parse hidden divs using Cheerio `.html()` method:
-   - `#fishcnt` - Total fish caught
-   - `#fishingpb` - Fishing XP percentage
-   - `#staminacnt` - Stamina remaining
-   - `#baitcnt` - Bait remaining
 
 **Response Format:**
 ```json
@@ -98,19 +95,15 @@ POST https://farmrpg.com/worker.php?go=fishcaught&id={locationId}&r={random}&bam
 }
 ```
 
-**Error Handling:**
-- No bait available: Return 400 error
-- Invalid location: Return 404 error
-- Parse errors: Return 500 error
-
-**Files to Create:**
-- `src/controllers/FishController.ts`
-- `src/models/FishCatch.ts`
-
-**Files to Modify:**
-- `src/services/FarmRPGService.ts` - Add `catchFish()` method
-- `src/routes/api.ts` - Add fish routes
-- `src/utils/constants.ts` - Add fishing constants
+**Implementation:**
+- ✅ Created `src/models/FishCatch.ts` - Fish catch data models
+- ✅ Created `src/controllers/FishController.ts` - Fish controller with validation
+- ✅ Updated `src/services/FarmRPGService.ts` - Added `catchFish()` and `getBaitInfo()` methods
+- ✅ Updated `src/routes/api.ts` - Added fish routes
+- ✅ Parses fish data from HTML response (name, image, ID)
+- ✅ Extracts hidden stats (total fish caught, XP%, stamina, bait)
+- ✅ Generates random parameters (r, p, q) for API call
+- ✅ Error handling for invalid requests and parse errors
 
 ---
 

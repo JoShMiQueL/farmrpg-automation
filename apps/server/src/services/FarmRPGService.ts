@@ -5,7 +5,8 @@ import { INVENTORY_CAP } from "../utils/constants";
 import type { PlayerCoins } from "../models/PlayerStats";
 import type { ItemDetails } from "../models/Item";
 import type { BuyItemResult } from "../models/BuyItem";
-import type { InventoryItem, InventoryData } from "../models/Inventory";
+import type { InventoryItem, InventoryData, InventoryCategory, InventoryCategoryData, InventoryStats } from "../models/Inventory";
+import type { FishCatchData } from "../models/FishCatch";
 
 export class FarmRPGService {
   private http: HttpClient;
@@ -251,8 +252,8 @@ export class FarmRPGService {
 
   // === INVENTORY METHODS ===
 
-  async getInventory(): Promise<{ status: number; data?: InventoryData; error?: string }> {
-    const result = await this.http.get("/market.php");
+  async getInventory(categoryFilter?: InventoryCategory | InventoryCategory[]): Promise<{ status: number; data?: InventoryData; error?: string }> {
+    const result = await this.http.get("/inventory.php");
 
     if (result.error) {
       return { status: result.status, error: result.error };
@@ -260,54 +261,99 @@ export class FarmRPGService {
 
     try {
       const $ = this.http.parseHtml(result.data!);
-      const items: InventoryItem[] = [];
+      const categories: InventoryCategoryData[] = [];
 
-      $("li.close-panel").each((_, elem) => {
-        const itemLink = $(elem).find("a[href^='item.php']");
-        const href = itemLink.attr("href") || "";
-        const idMatch = href.match(/id=(\d+)/);
-        const itemId = idMatch?.[1] ? this.http.parseNumber(idMatch[1]) : 0;
+      // Parse each category group
+      $(".list-group").each((_, groupElem) => {
+        const groupTitle = $(groupElem).find(".list-group-title").text().trim();
+        
+        // Determine category from group title
+        let category: InventoryCategory | null = null;
+        const lowerTitle = groupTitle.toLowerCase();
+        
+        if (lowerTitle.includes("items")) category = "items";
+        else if (lowerTitle.includes("fish")) category = "fish";
+        else if (lowerTitle.includes("crops")) category = "crops";
+        else if (lowerTitle.includes("seeds")) category = "seeds";
+        else if (lowerTitle.includes("loot")) category = "loot";
+        else if (lowerTitle.includes("runestones")) category = "runestones";
+        else if (lowerTitle.includes("books")) category = "books";
+        else if (lowerTitle.includes("cards")) category = "cards";
+        else if (lowerTitle.includes("rares")) category = "rares";
 
-        const itemName = $(elem).find(".item-title strong").text().trim();
-        const quantityInput = $(elem).find("input.qty");
-        const quantityText = quantityInput.attr("value") || "0";
-        const quantity = this.http.parseNumber(quantityText);
+        if (!category) return;
 
-        // Check if at cap (red text)
-        const isAtCap = quantityInput.attr("style")?.includes("color:red") || false;
+        const items: InventoryItem[] = [];
 
-        // Get price per item
-        const priceAttr = quantityInput.attr("data-price") || "0";
-        const price = this.http.parseNumber(priceAttr);
+        // Parse items in this category
+        $(groupElem).find("li").not(".list-group-title").each((_, itemElem) => {
+          const itemLink = $(itemElem).find("a[href^='item.php']");
+          
+          // Skip if no link (e.g., "None" entries)
+          if (itemLink.length === 0) return;
 
-        // Get image
-        const imgSrc = $(elem).find(".item-media img").attr("src") || "";
-        const imageUrl = imgSrc ? `https://farmrpg.com${imgSrc}` : "";
+          const href = itemLink.attr("href") || "";
+          const idMatch = href.match(/id=(\d+)/);
+          const itemId = idMatch?.[1] ? this.http.parseNumber(idMatch[1]) : 0;
 
-        const hasSellButton = $(elem).find(".sellbtn").length > 0;
+          const itemName = $(itemElem).find(".item-title strong").text().trim();
+          
+          // Get description (text after <br/> in item-title)
+          const itemTitleHtml = $(itemElem).find(".item-title").html() || "";
+          const descMatch = itemTitleHtml.match(/<span[^>]*>([^<]+)<\/span>/);
+          const description = descMatch?.[1]?.trim() || "";
 
-        if (itemId && itemName && quantity > 0 && hasSellButton) {
-          items.push({
-            id: itemId,
-            name: itemName,
-            quantity,
-            price,
-            totalValue: price * quantity,
-            isAtCap,
-            imageUrl
-          });
+          const quantityText = $(itemElem).find(".item-after").text().trim();
+          const quantity = this.http.parseNumber(quantityText);
+
+          // Get image
+          const imgSrc = $(itemElem).find(".item-media img").attr("src") || "";
+          const imageUrl = imgSrc ? `https://farmrpg.com${imgSrc}` : "";
+
+          if (itemId && itemName && quantity > 0) {
+            items.push({
+              id: itemId,
+              name: itemName,
+              description,
+              quantity,
+              imageUrl
+            });
+          }
+        });
+
+        if (items.length > 0) {
+          categories.push({ category, items });
         }
       });
 
-      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-      const totalValue = items.reduce((sum, item) => sum + item.totalValue, 0);
+      // Parse inventory stats from the card at the bottom
+      const statsHtml = $(".card-content-inner:contains('Your inventory contains')").html() || "";
+      const uniqueItemsMatch = statsHtml.match(/contains\s+<strong>(\d+)<\/strong>\s+unique items/);
+      const totalItemsMatch = statsHtml.match(/and\s+<strong>(\d+)<\/strong>\s+items in total/);
+      
+      // Parse max capacity from the top card
+      const capacityHtml = $(".card-content-inner:contains('cannot have more than')").html() || "";
+      const maxCapacityMatch = capacityHtml.match(/more than\s+<strong>(\d+)<\/strong>/);
+
+      const stats: InventoryStats = {
+        uniqueItems: uniqueItemsMatch?.[1] ? this.http.parseNumber(uniqueItemsMatch[1]) : 0,
+        totalItems: totalItemsMatch?.[1] ? this.http.parseNumber(totalItemsMatch[1]) : 0,
+        maxCapacity: maxCapacityMatch?.[1] ? this.http.parseNumber(maxCapacityMatch[1]) : 200
+      };
+
+      // Filter categories if categoryFilter is provided
+      let filteredCategories = categories;
+      
+      if (categoryFilter) {
+        const filters = Array.isArray(categoryFilter) ? categoryFilter : [categoryFilter];
+        filteredCategories = categories.filter(cat => filters.includes(cat.category));
+      }
 
       return {
         status: 200,
         data: {
-          items,
-          totalItems,
-          totalValue
+          categories: filteredCategories,
+          stats
         }
       };
     } catch (error) {
@@ -318,8 +364,9 @@ export class FarmRPGService {
     }
   }
 
-  async getFishInventory(): Promise<{ status: number; data?: Array<{ id: number; name: string; quantity: number }>; error?: string }> {
-    const result = await this.http.get("/market.php");
+  async getBaitInfo(locationId: number = 1): Promise<{ status: number; data?: { baitName: string; baitCount: number; streak: number; bestStreak: number }; error?: string }> {
+    const cachebuster = Date.now();
+    const result = await this.http.get(`/worker.php?cachebuster=${cachebuster}&go=baitarea&id=${locationId}`);
 
     if (result.error) {
       return { status: result.status, error: result.error };
@@ -327,28 +374,109 @@ export class FarmRPGService {
 
     try {
       const $ = this.http.parseHtml(result.data!);
-      const fishItems: Array<{ id: number; name: string; quantity: number }> = [];
 
-      $("li.close-panel").each((_, elem) => {
-        const itemLink = $(elem).find("a[href^='item.php']");
-        const href = itemLink.attr("href") || "";
-        const idMatch = href.match(/id=(\d+)/);
-        const itemId = idMatch?.[1] ? this.http.parseNumber(idMatch[1]) : 0;
+      // Parse bait count from "Worms: <strong id="baitleft">0</strong>"
+      const baitCountText = $("#baitleft").text().trim();
+      const baitCount = this.http.parseNumber(baitCountText);
 
-        const itemName = $(elem).find(".item-title strong").text().trim();
-        const quantityInput = $(elem).find("input.qty");
-        const quantityText = quantityInput.attr("value") || "0";
-        const quantity = this.http.parseNumber(quantityText);
+      // Parse bait name from hidden div
+      const baitName = $("#last_bait").text().trim() || "Unknown";
 
-        const hasSellButton = $(elem).find(".sellbtn").length > 0;
+      // Parse streak and best streak from "Streak: <strong>5,267</strong> &nbsp; Best: <strong>5,267</strong>"
+      const streakText = $(".col-55:contains('Streak:')").html() || "";
+      const streakMatch = streakText.match(/Streak:\s*<strong>([\d,]+)<\/strong>/);
+      const bestStreakMatch = streakText.match(/Best:\s*<strong>([\d,]+)<\/strong>/);
 
-        // Exclude worms (id=18) and other bait items
-        if (itemId && itemName && quantity > 0 && hasSellButton && itemId !== 18) {
-          fishItems.push({ id: itemId, name: itemName, quantity });
+      const streak = streakMatch?.[1] ? this.http.parseNumber(streakMatch[1].replace(/,/g, "")) : 0;
+      const bestStreak = bestStreakMatch?.[1] ? this.http.parseNumber(bestStreakMatch[1].replace(/,/g, "")) : 0;
+
+      return {
+        status: 200,
+        data: {
+          baitName,
+          baitCount,
+          streak,
+          bestStreak
         }
-      });
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        error: error instanceof Error ? error.message : "Parse error"
+      };
+    }
+  }
 
-      return { status: 200, data: fishItems };
+  // === FISHING METHODS ===
+
+  async catchFish(locationId: number = 1, baitAmount: number = 1): Promise<{ status: number; data?: FishCatchData; error?: string }> {
+    // Generate random parameters
+    const r = Math.floor(Math.random() * 1000000);
+    const p = Math.floor(Math.random() * 1000);
+    const q = Math.floor(Math.random() * 1000);
+
+    const result = await this.http.post(`/worker.php?go=fishcaught&id=${locationId}&r=${r}&bamt=${baitAmount}&p=${p}&q=${q}`);
+
+    if (result.error) {
+      return { status: result.status, error: result.error };
+    }
+
+    try {
+      const $ = this.http.parseHtml(result.data!);
+
+      // Extract fish name from alt attribute
+      const fishName = $("img.itemimg").attr("alt")?.trim() || "";
+      
+      // Extract fish image from src attribute
+      const fishImageSrc = $("img.itemimg").attr("src")?.trim() || "";
+      const fishImage = fishImageSrc ? `https://farmrpg.com${fishImageSrc}` : "";
+
+      // Extract fish ID from image filename
+      // Try numeric format first (e.g., /img/items/7718.PNG -> 7718)
+      let fishIdMatch = fishImageSrc.match(/\/(\d+)\./);
+      let fishId = fishIdMatch?.[1] ? this.http.parseNumber(fishIdMatch[1]) : 0;
+      
+      // If no numeric ID found, extract from filename (e.g., yellowperch.png -> 0, we'll use name as fallback)
+      if (fishId === 0 && fishImageSrc) {
+        // For non-numeric filenames, we can't determine the ID, so leave it as 0
+        fishId = 0;
+      }
+
+      // Parse hidden stats
+      const totalFishCaughtText = $("#fishcnt").text().trim();
+      const totalFishCaught = this.http.parseNumber(totalFishCaughtText);
+
+      const fishingXpPercentText = $("#fishingpb").text().trim();
+      const fishingXpPercent = parseFloat(fishingXpPercentText) || 0;
+
+      const staminaText = $("#staminacnt").text().trim();
+      const stamina = this.http.parseNumber(staminaText);
+
+      const baitText = $("#baitcnt").text().trim();
+      const bait = this.http.parseNumber(baitText);
+
+      if (!fishName || !fishImage) {
+        return { status: 400, error: "Failed to catch fish - no fish data returned" };
+      }
+
+      return {
+        status: 200,
+        data: {
+          catch: {
+            id: fishId,
+            name: fishName,
+            image: fishImage
+          },
+          stats: {
+            totalFishCaught,
+            fishingXpPercent
+          },
+          resources: {
+            stamina,
+            bait
+          }
+        }
+      };
     } catch (error) {
       return {
         status: 500,
@@ -375,7 +503,7 @@ export class FarmRPGService {
     return { status: 200, data: quantity };
   }
 
-  async sellAllItems(onlyCapped: boolean = false): Promise<{ status: number; data?: { totalSilver: number; itemsSold: number; itemTypes: number }; error?: string }> {
+  async sellAllItems(categoryFilter?: InventoryCategory): Promise<{ status: number; data?: { totalSilver: number; itemsSold: number; itemTypes: number }; error?: string }> {
     const inventoryResult = await this.getInventory();
     if (inventoryResult.error || !inventoryResult.data) {
       return {
@@ -384,9 +512,14 @@ export class FarmRPGService {
       };
     }
 
-    const itemsToSell = onlyCapped 
-      ? inventoryResult.data.items.filter(item => item.isAtCap)
-      : inventoryResult.data.items;
+    // Collect all items to sell, optionally filtered by category
+    let itemsToSell: InventoryItem[] = [];
+    
+    for (const categoryData of inventoryResult.data.categories) {
+      if (!categoryFilter || categoryData.category === categoryFilter) {
+        itemsToSell.push(...categoryData.items);
+      }
+    }
     
     if (itemsToSell.length === 0) {
       return { status: 200, data: { totalSilver: 0, itemsSold: 0, itemTypes: 0 } };

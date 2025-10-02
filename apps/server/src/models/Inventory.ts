@@ -4,17 +4,36 @@ import type { ApiResponse } from "./ApiResponse";
 export interface InventoryItem {
   id: number;
   name: string;
+  description: string;
   quantity: number;
-  price: number;
-  totalValue: number;
-  isAtCap: boolean;
   imageUrl: string;
 }
 
-export interface InventoryData {
+export type InventoryCategory = 
+  | "items" 
+  | "fish" 
+  | "crops" 
+  | "seeds" 
+  | "loot" 
+  | "runestones" 
+  | "books" 
+  | "cards" 
+  | "rares";
+
+export interface InventoryCategoryData {
+  category: InventoryCategory;
   items: InventoryItem[];
+}
+
+export interface InventoryStats {
+  uniqueItems: number;
   totalItems: number;
-  totalValue: number;
+  maxCapacity: number;
+}
+
+export interface InventoryData {
+  categories: InventoryCategoryData[];
+  stats: InventoryStats;
 }
 
 export type InventoryResponse = ApiResponse<InventoryData>;

@@ -1,14 +1,41 @@
 // Controller for inventory-related endpoints
 import type { Context } from "hono";
 import { farmRPGService } from "../services";
-import type { InventoryResponse } from "../models/Inventory";
+import type { InventoryResponse, InventoryCategory } from "../models/Inventory";
 import { ErrorCode } from "../models/ApiResponse";
 
 export class InventoryController {
   private farmRPGService = farmRPGService;
 
   async getInventory(c: Context) {
-    const result = await this.farmRPGService.getInventory();
+    const categoryParam = c.req.query("category");
+    
+    // Validate category if provided
+    const validCategories: InventoryCategory[] = ["items", "fish", "crops", "seeds", "loot", "runestones", "books", "cards", "rares"];
+    
+    let categoryFilter: InventoryCategory | InventoryCategory[] | undefined;
+    
+    if (categoryParam) {
+      // Support comma-separated categories (e.g., ?category=fish,crops)
+      const categories = categoryParam.split(",").map(c => c.trim()) as InventoryCategory[];
+      
+      // Validate all categories
+      const invalidCategories = categories.filter(cat => !validCategories.includes(cat));
+      if (invalidCategories.length > 0) {
+        const errorResponse: InventoryResponse = {
+          success: false,
+          error: {
+            code: ErrorCode.VALIDATION_ERROR,
+            message: `Invalid category: ${invalidCategories.join(", ")}. Valid categories: ${validCategories.join(", ")}`
+          }
+        };
+        return c.json(errorResponse, 400);
+      }
+      
+      categoryFilter = categories.length === 1 ? categories[0] : categories;
+    }
+
+    const result = await this.farmRPGService.getInventory(categoryFilter);
 
     if (result.error) {
       const errorResponse: InventoryResponse = {
