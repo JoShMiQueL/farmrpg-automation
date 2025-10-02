@@ -107,11 +107,12 @@ bun run start
   "action": "start",
   "config": {
     "minDelay": 2,
-    "maxDelay": 6,
-    "baitToBuy": 100
+    "maxDelay": 6
   }
 }
 ```
+
+**Smart Bait Purchasing:** Automatically buys maximum bait based on available silver and inventory cap (up to 200).
 
 ## 📊 Technologies
 

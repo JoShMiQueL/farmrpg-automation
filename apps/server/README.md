@@ -52,23 +52,23 @@ The server runs at **http://localhost:3000** with automatic hot reload.
   "timestamp": "2025-10-02T13:18:55.000Z"
 }
 ```
-
 ### Fishing Bot API
 
 #### Start/Stop/Status Bot
-- `POST /api/bot/fishing` - Control the fishing bot
+- `POST /api/bot/fishing` - Control the fish bot
 
-**Start Bot:**
+**Configuration:**
 ```json
 {
   "action": "start",
   "config": {
     "minDelay": 2,
-    "maxDelay": 6,
-    "baitToBuy": 100
+    "maxDelay": 6
   }
 }
 ```
+
+**Note:** Bot automatically buys maximum bait based on available silver and 200 inventory cap.
 
 **Stop Bot:**
 ```json

@@ -4,7 +4,6 @@ import type { ApiResponse } from "./ApiResponse";
 export interface FishingBotConfig {
   minDelay: number; // Minimum delay in seconds (default: 2)
   maxDelay: number; // Maximum delay in seconds (default: 6)
-  baitToBuy: number; // Amount of bait to buy when out (default: 100)
 }
 
 export interface FishingBotStatus {

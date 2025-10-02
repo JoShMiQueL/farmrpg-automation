@@ -22,8 +22,7 @@ export class FishingBotService {
   };
   private config: FishingBotConfig = {
     minDelay: 2,
-    maxDelay: 6,
-    baitToBuy: 100
+    maxDelay: 6
   };
 
   async start(config?: Partial<FishingBotConfig>): Promise<FishingBotStatus> {
@@ -123,7 +122,7 @@ export class FishingBotService {
   }
 
   private async handleOutOfBait() {
-    this.status.lastAction = "Out of bait, attempting to buy...";
+    this.status.lastAction = "Out of bait, attempting to buy max amount...";
     
     // Update current stats
     const statsResult = await this.farmRPGService.getPlayerStats();
@@ -132,15 +131,15 @@ export class FishingBotService {
       this.status.currentBait = 0;
     }
 
-    // Try to buy bait
-    const buyResult = await this.farmRPGService.buyItem(BAIT_ITEM_ID, this.config.baitToBuy);
+    // Try to buy max bait (-1 = buy all affordable)
+    const buyResult = await this.farmRPGService.buyItem(BAIT_ITEM_ID, -1);
     
     if (buyResult.error) {
       // Not enough silver - sell items at cap and retry
       this.status.lastAction = "Not enough silver, selling items at cap...";
       await this.sellCappedItemsAndUpdateStatus();
 
-      const retryBuyResult = await this.farmRPGService.buyItem(BAIT_ITEM_ID, this.config.baitToBuy);
+      const retryBuyResult = await this.farmRPGService.buyItem(BAIT_ITEM_ID, -1);
       if (retryBuyResult.error) {
         this.status.errors.push(`Still can't buy bait: ${retryBuyResult.error}`);
         this.status.lastAction = "Cannot buy bait, stopping...";
