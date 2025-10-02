@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot index.ts",
-    "start": "NODE_ENV=production bun index.ts"
+    "start": "NODE_ENV=production bun index.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "cheerio": "^1.1.2",
