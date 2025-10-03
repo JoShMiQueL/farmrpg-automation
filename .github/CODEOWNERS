@@ -1,0 +1,18 @@
+# Code Owners for farmrpg-automation
+# These users will be automatically requested for review when someone opens a PR
+
+# Global owners - will be requested for review on all PRs
+* @JoShMiQueL
+
+# Workflow owners - for CI/CD changes
+/.github/workflows/ @JoShMiQueL
+
+# Server code owners
+/apps/server/ @JoShMiQueL
+
+# Client code owners
+/apps/client/ @JoShMiQueL
+
+# Documentation owners
+*.md @JoShMiQueL
+/docs/ @JoShMiQueL
