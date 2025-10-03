@@ -1,0 +1,99 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: PR Details
+        run: |
+          echo "PR #${{ github.event.pull_request.number }}"
+          echo "Title: ${{ github.event.pull_request.title }}"
+          echo "Author: ${{ github.event.pull_request.user.login }}"
+          echo "Base: ${{ github.event.pull_request.base.ref }}"
+          echo "Head: ${{ github.event.pull_request.head.ref }}"
+
+  validate-pr:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check for merge conflicts
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          if git merge-tree $(git merge-base HEAD origin/${{ github.event.pull_request.base.ref }}) HEAD origin/${{ github.event.pull_request.base.ref }} | grep -q '<<<<<<<'; then
+            echo "::error::Merge conflicts detected"
+            exit 1
+          fi
+
+      - name: Validate commit messages
+        run: |
+          commits=$(git log origin/${{ github.event.pull_request.base.ref }}..HEAD --pretty=format:"%s")
+          echo "$commits" | while read -r commit; do
+            if ! echo "$commit" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .+'; then
+              echo "::warning::Commit message does not follow Conventional Commits: $commit"
+            fi
+          done
+
+      - name: Check file changes
+        run: |
+          changed_files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+          echo "Changed files:"
+          echo "$changed_files"
+          
+          # Check if package.json changed without lock file update
+          if echo "$changed_files" | grep -q "package.json" && ! echo "$changed_files" | grep -q "bun.lock"; then
+            echo "::warning::package.json changed but bun.lock was not updated"
+          fi
+
+  size-check:
+    name: Bundle Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build and check size
+        run: |
+          bun run build:client
+          
+          # Check if dist directory exists
+          if [ -d "apps/client/dist" ]; then
+            size=$(du -sh apps/client/dist | cut -f1)
+            echo "Build size: $size"
+            
+            # Get size in KB for comparison
+            size_kb=$(du -sk apps/client/dist | cut -f1)
+            
+            # Warning if build is larger than 5MB
+            if [ $size_kb -gt 5120 ]; then
+              echo "::warning::Build size ($size) exceeds 5MB"
+            fi
+          fi

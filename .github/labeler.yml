@@ -1,0 +1,76 @@
+# Configuration for actions/labeler
+# Labels PRs based on changed files
+
+# Server changes
+'server':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/server/**/*'
+
+# Client changes
+'client':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/client/**/*'
+
+# Documentation changes
+'documentation':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+# Tests
+'tests':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.test.ts'
+      - '**/*.spec.ts'
+      - 'apps/server/tests/**/*'
+
+# Dependencies
+'dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'package.json'
+      - 'bun.lock'
+      - 'apps/*/package.json'
+
+# CI/CD
+'ci/cd':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**/*'
+      - '.husky/**/*'
+
+# Configuration
+'configuration':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'biome.json'
+      - 'tsconfig.json'
+      - '.env.example'
+      - '**/*.config.*'
+
+# Controllers
+'controller':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/server/src/controllers/**/*'
+
+# Services
+'service':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/server/src/services/**/*'
+
+# Models
+'models':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/server/src/models/**/*'
+
+# Routes
+'routes':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/server/src/routes/**/*'
+
+# Utils
+'utils':
+  - changed-files:
+    - any-glob-to-any-file: 'apps/server/src/utils/**/*'

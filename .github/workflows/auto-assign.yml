@@ -1,0 +1,99 @@
+name: Auto Assign
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+  issues:
+    types: [opened]
+
+jobs:
+  auto-assign-pr:
+    name: Auto Assign PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - name: Auto assign PR to author
+        uses: toshimaru/auto-author-assign@v2.1.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  add-pr-comment:
+    name: Add PR Comment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - name: Comment on new PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login;
+            const prNumber = context.payload.pull_request.number;
+            const prTitle = context.payload.pull_request.title;
+            
+            const message = `👋 Thanks for opening this PR, @${prAuthor}!
+            
+            ## 📋 Checklist
+            
+            Please ensure your PR meets the following requirements:
+            
+            - [ ] Code follows the project's style guidelines
+            - [ ] Tests have been added/updated
+            - [ ] Documentation has been updated (if needed)
+            - [ ] All tests pass locally
+            - [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/)
+            
+            ## 🔍 Review Process
+            
+            Your PR will be reviewed as soon as possible. In the meantime:
+            
+            - Check that all CI checks pass ✅
+            - Respond to any review comments
+            - Keep your branch up to date with the base branch
+            
+            Thank you for contributing! 🎉`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });
+
+  add-issue-comment:
+    name: Add Issue Comment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    permissions:
+      issues: write
+    
+    steps:
+      - name: Comment on new issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueAuthor = context.payload.issue.user.login;
+            const issueNumber = context.payload.issue.number;
+            
+            const message = `👋 Thanks for opening this issue, @${issueAuthor}!
+            
+            ## 📝 Next Steps
+            
+            - A maintainer will review your issue soon
+            - Please provide as much detail as possible
+            - If this is a bug, include steps to reproduce
+            - If this is a feature request, explain the use case
+            
+            We appreciate your contribution to the project! 🙏`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: message
+            });

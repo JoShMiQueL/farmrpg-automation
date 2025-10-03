@@ -1,0 +1,17 @@
+# Configuration for github/issue-labeler
+# Labels issues based on title and body content
+
+bug:
+  - '(bug|error|issue|problem|broken|crash|fail)'
+enhancement:
+  - '(feature|enhancement|improve|add|new)'
+documentation:
+  - '(docs|documentation|readme|guide)'
+question:
+  - '(question|how to|help|support)'
+performance:
+  - '(performance|slow|speed|optimize|optimization)'
+security:
+  - '(security|vulnerability|exploit|cve)'
+dependencies:
+  - '(dependency|dependencies|package|upgrade|update)'

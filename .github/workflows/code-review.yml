@@ -1,0 +1,209 @@
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  biome-check:
+    name: Biome Code Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run Biome check
+        run: |
+          bun run ci > biome-output.txt 2>&1 || true
+
+      - name: Comment Biome results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const prNumber = context.payload.pull_request.number;
+            
+            let biomeOutput = '';
+            try {
+              biomeOutput = fs.readFileSync('biome-output.txt', 'utf8');
+            } catch (error) {
+              biomeOutput = 'No output from Biome check';
+            }
+            
+            // Only comment if there are issues
+            if (biomeOutput.includes('error') || biomeOutput.includes('warning')) {
+              const message = `## 🔍 Biome Code Review
+              
+              \`\`\`
+              ${biomeOutput.slice(0, 4000)}
+              \`\`\`
+              
+              Please fix the issues reported above.`;
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
+              });
+            }
+
+  comment-coverage:
+    name: Comment Test Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: bun run test:coverage
+
+      - name: Comment coverage on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const prNumber = context.payload.pull_request.number;
+            
+            // Note: Bun's coverage output format may vary
+            // This is a placeholder for coverage reporting
+            const message = `## 📊 Test Coverage Report
+            
+            Tests have been executed successfully! ✅
+            
+            - All tests passed
+            - Coverage report generated
+            
+            Please review the test results in the CI logs.`;
+            
+            // Find existing coverage comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const coverageComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Test Coverage Report')
+            );
+            
+            if (coverageComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: coverageComment.id,
+                body: message
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
+              });
+            }
+
+  pr-metrics:
+    name: PR Metrics
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate PR metrics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            
+            // Get PR details
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            // Get PR files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            const additions = files.reduce((sum, file) => sum + file.additions, 0);
+            const deletions = files.reduce((sum, file) => sum + file.deletions, 0);
+            const changedFiles = files.length;
+            
+            const message = `## 📈 PR Metrics
+            
+            | Metric | Value |
+            |--------|-------|
+            | Files Changed | ${changedFiles} |
+            | Lines Added | +${additions} |
+            | Lines Deleted | -${deletions} |
+            | Net Change | ${additions - deletions} |
+            | Commits | ${pr.commits} |
+            
+            ${changedFiles > 20 ? '⚠️ This PR changes many files. Consider breaking it into smaller PRs.' : ''}
+            ${additions + deletions > 1000 ? '⚠️ This is a large PR. Review may take longer.' : ''}`;
+            
+            // Find existing metrics comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const metricsComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('PR Metrics')
+            );
+            
+            if (metricsComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: metricsComment.id,
+                body: message
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: message
+              });
+            }

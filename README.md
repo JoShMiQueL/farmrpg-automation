@@ -1,5 +1,8 @@
 # FarmRPG API
 
+![CI](https://github.com/JoShMiQueL/farmrpg-automation/workflows/CI/badge.svg)
+![Security](https://github.com/JoShMiQueL/farmrpg-automation/workflows/Security%20%26%20Dependencies/badge.svg)
+
 A TypeScript-based REST API for FarmRPG with monorepo architecture using Bun workspaces.
 
 ## ✨ Features
