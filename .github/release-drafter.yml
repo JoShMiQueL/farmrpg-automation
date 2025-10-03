@@ -1,0 +1,102 @@
+# Configuration for release-drafter/release-drafter
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+      - 'feat'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: '🧰 Maintenance'
+    labels:
+      - 'chore'
+      - 'maintenance'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🔒 Security'
+    labels:
+      - 'security'
+  - title: '⚡ Performance'
+    labels:
+      - 'performance'
+      - 'perf'
+  - title: '🧪 Tests'
+    labels:
+      - 'test'
+      - 'tests'
+  - title: '📦 Dependencies'
+    labels:
+      - 'dependencies'
+      - 'deps'
+  - title: '🔧 Configuration'
+    labels:
+      - 'configuration'
+      - 'config'
+  - title: '🔄 CI/CD'
+    labels:
+      - 'ci/cd'
+      - 'ci'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bugfix'
+  default: patch
+
+template: |
+  ## What's Changed
+  
+  $CHANGES
+  
+  ## Contributors
+  
+  Thank you to all contributors who made this release possible! 🎉
+  
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+autolabeler:
+  - label: 'documentation'
+    files:
+      - '*.md'
+      - 'docs/**/*'
+  - label: 'dependencies'
+    files:
+      - 'package.json'
+      - 'bun.lock'
+      - 'apps/*/package.json'
+  - label: 'ci/cd'
+    files:
+      - '.github/workflows/*'
+  - label: 'server'
+    files:
+      - 'apps/server/**/*'
+  - label: 'client'
+    files:
+      - 'apps/client/**/*'
+  - label: 'tests'
+    files:
+      - '**/*.test.ts'
+      - '**/*.spec.ts'
