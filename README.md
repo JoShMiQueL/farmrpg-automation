@@ -145,6 +145,14 @@ bun run start
 - ✅ Constants extraction
 - ✅ DRY principles
 - ✅ Consistent error handling
+- ✅ Biome for linting and formatting
+- ✅ Conventional Commits enforced
+
+## 📝 Contributing
+
+This project follows [Conventional Commits](https://www.conventionalcommits.org/). See [COMMIT_CONVENTION.md](.github/COMMIT_CONVENTION.md) for details.
+
+Commits are automatically validated by commitlint via git hooks.
 
 ---
 

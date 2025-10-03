@@ -45,33 +45,12 @@ The scope provides additional context about which part of the codebase is affect
 - `items` - Items feature
 - `player` - Player stats feature
 
-**Examples:**
-```
-feat(api): add new endpoint
-fix(inventory): resolve cap issue
-refactor(service): improve error handling
-```
-
 ## 📝 Subject
 
 - Use imperative, present tense: "add" not "added" nor "adds"
 - Don't capitalize first letter
 - No period (.) at the end
 - Maximum 100 characters
-
-**Good:**
-```
-feat: add fishing system
-fix: resolve inventory cap bug
-docs: update readme
-```
-
-**Bad:**
-```
-feat: Added fishing system  ❌ (past tense, capitalized)
-fix: Resolves inventory cap bug.  ❌ (wrong tense, period)
-docs: Updated the README file  ❌ (past tense, capitalized)
-```
 
 ## 📄 Body (Optional)
 
@@ -80,80 +59,52 @@ docs: Updated the README file  ❌ (past tense, capitalized)
 - Contrast with previous behavior
 - Wrap at 100 characters per line
 
-**Example:**
-```
-feat(api): add fishing endpoint
-
-Add new endpoint to catch fish at different locations.
-The endpoint accepts locationId and baitAmount parameters.
-Returns fish data along with updated player stats.
-```
-
 ## 🔗 Footer (Optional)
 
 Reference issues, breaking changes, or other metadata:
+- **Breaking Changes:** `BREAKING CHANGE: description`
+- **Issue References:** `Fixes #123`, `Closes #456`
 
-**Breaking Changes:**
-```
-feat(api): change response format
+## 🚀 Quick Start
 
-BREAKING CHANGE: API now returns data in new format
+Write commits using the conventional format:
+
+```bash
+git commit -m "type(scope): subject"
 ```
 
-**Issue References:**
-```
-fix(inventory): correct cap calculation
-
-Fixes #123
-Closes #456
-```
+Commits are automatically validated by commitlint via git hooks.
 
 ## ✅ Valid Examples
 
-### Simple commits
 ```bash
+# Simple commits
 feat: add fishing system
 fix: resolve inventory bug
 docs: update api documentation
-style: format code with biome
-refactor: extract http client
-perf: optimize database queries
-test: add controller tests
 chore: update dependencies
-ci: add github actions
-build: update bun to v1.2
-```
 
-### With scope
-```bash
+# With scope
 feat(api): add fishing endpoint
 fix(inventory): correct cap calculation
-docs(readme): add installation guide
 refactor(service): improve error handling
-test(controller): add item controller tests
-```
 
-### With body
-```bash
+# With body
 feat(api): add fishing endpoint
 
 Add new endpoint to catch fish at different locations.
 Includes bait management and streak tracking.
 Returns fish data with updated player stats.
-```
 
-### With footer
-```bash
+# With footer
 fix(inventory): correct cap calculation
 
 The inventory cap was not being respected when buying items.
 Now properly checks available space before purchase.
 
 Fixes #123
-```
 
-### Breaking change
-```bash
+# Breaking change
 feat(api): change response format
 
 BREAKING CHANGE: API responses now use camelCase instead of snake_case
@@ -162,89 +113,29 @@ BREAKING CHANGE: API responses now use camelCase instead of snake_case
 ## ❌ Invalid Examples
 
 ```bash
-# Missing type
-add fishing system  ❌
-
-# Wrong type
-feature: add fishing system  ❌
-
-# Capitalized subject
-feat: Add fishing system  ❌
-
-# Past tense
-feat: added fishing system  ❌
-
-# Period at end
-feat: add fishing system.  ❌
-
-# Too vague
-fix: bug fix  ❌
-
-# Not imperative
-feat: adding fishing system  ❌
+add fishing system          # Missing type
+feature: add fishing system # Wrong type
+feat: Add fishing system    # Capitalized subject
+feat: added fishing system  # Past tense
+feat: add fishing system.   # Period at end
+fix: bug fix                # Too vague
+feat: adding fishing system # Not imperative
 ```
 
 ## 🛠️ Enforcement
 
 Commit messages are validated using:
+- **commitlint** - Validates format on commit
+- **Husky** - Runs commitlint via git hooks
+- **GitHub Actions** - Validates PR titles and commits
 
-1. **commitlint** - Validates format on commit
-2. **Husky** - Runs commitlint via git hooks
-3. **GitHub Actions** - Validates PR titles and commits
+### Bypass (Emergency Only)
 
-### Local Validation
-
-Test your commit message:
-```bash
-echo "feat: add new feature" | bunx commitlint
-```
-
-### Bypass (Not Recommended)
-
-In rare cases, you can bypass the hook:
 ```bash
 git commit --no-verify -m "your message"
 ```
 
-**Warning:** This is discouraged and may cause CI to fail!
-
-## 📚 Tools & Helpers
-
-### Commitizen (Optional)
-
-Install commitizen for interactive commit messages:
-
-```bash
-bun add -D commitizen cz-conventional-changelog
-```
-
-Then commit with:
-```bash
-bunx cz
-```
-
-### VS Code Extension
-
-Install "Conventional Commits" extension for VS Code:
-- Extension ID: `vivaxy.vscode-conventional-commits`
-
-### Git Aliases
-
-Add to your `.gitconfig`:
-
-```ini
-[alias]
-  cf = "!f() { git commit -m \"feat: $1\"; }; f"
-  cx = "!f() { git commit -m \"fix: $1\"; }; f"
-  cd = "!f() { git commit -m \"docs: $1\"; }; f"
-  cc = "!f() { git commit -m \"chore: $1\"; }; f"
-```
-
-Usage:
-```bash
-git cf "add new feature"  # Creates: feat: add new feature
-git cx "resolve bug"      # Creates: fix: resolve bug
-```
+⚠️ **Warning:** Bypassing validation may cause CI to fail!
 
 ## 🎓 Best Practices
 
@@ -259,15 +150,6 @@ git cx "resolve bug"      # Creates: fix: resolve bug
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [Commitlint Documentation](https://commitlint.js.org/)
 - [Angular Commit Guidelines](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#commit)
-
-## 🆘 Need Help?
-
-If you're unsure about your commit message:
-
-1. Check this guide
-2. Look at recent commits in the repository
-3. Ask in PR comments
-4. Use commitizen for interactive help
 
 ---
 
