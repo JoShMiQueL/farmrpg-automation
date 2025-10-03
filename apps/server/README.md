@@ -207,7 +207,34 @@ Server runs at **http://localhost:3000** with hot reload.
   "success": true,
   "data": {
     "itemId": 7758,
-    "quantitySold": 50
+    "quantity": 50,
+    "totalSilver": 120
+  },
+  "timestamp": "2025-10-02T13:30:00.000Z"
+}
+```
+
+**Error Response (Invalid Item ID):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Item not found or invalid item ID",
+    "statusCode": 404
+  },
+  "timestamp": "2025-10-02T13:30:00.000Z"
+}
+```
+
+**Error Response (Insufficient Quantity):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Insufficient quantity in inventory",
+    "statusCode": 400
   },
   "timestamp": "2025-10-02T13:30:00.000Z"
 }
@@ -513,7 +540,34 @@ Get your cookie from browser DevTools → Application → Cookies → farmrpg.co
   "success": true,
   "data": {
     "itemId": 17,
-    "quantitySold": 50
+    "quantity": 50,
+    "totalSilver": 600
+  },
+  "timestamp": "2025-10-02T16:51:42.000Z"
+}
+```
+
+**Error Response (Invalid Item ID):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Item not found or invalid item ID",
+    "statusCode": 404
+  },
+  "timestamp": "2025-10-02T16:51:42.000Z"
+}
+```
+
+**Error Response (Insufficient Quantity):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Insufficient quantity in inventory",
+    "statusCode": 400
   },
   "timestamp": "2025-10-02T16:51:42.000Z"
 }
