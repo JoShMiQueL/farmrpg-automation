@@ -1,11 +1,15 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { logger } from "hono/logger";
 import api from "./src/routes/api";
 
 const app = new Hono();
 
 // Enable CORS for development
 app.use("*", cors());
+
+// Enable logging
+app.use("*", logger());
 
 // Mount API routes
 app.route("/api", api);
