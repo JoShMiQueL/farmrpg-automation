@@ -558,11 +558,23 @@ export class FarmRPGService {
 
     const responseText = result.data?.trim() || "";
 
-    if (responseText.toLowerCase() !== "success") {
-      return { status: 400, error: `Sell failed: ${responseText}` };
+    // Empty string means invalid item ID
+    if (responseText === "") {
+      return { status: 404, error: "Item not found or invalid item ID" };
     }
 
-    return { status: 200, data: quantity };
+    // "error" string means quantity exceeds what user has
+    if (responseText.toLowerCase() === "error") {
+      return { status: 400, error: "Insufficient quantity in inventory" };
+    }
+
+    // Response should be a number representing total sell value
+    const totalSellValue = this.http.parseNumber(responseText);
+    if (Number.isNaN(totalSellValue) || totalSellValue === 0) {
+      return { status: 400, error: `Unexpected response: ${responseText}` };
+    }
+
+    return { status: 200, data: totalSellValue };
   }
 
   async sellAllItems(categoryFilter?: InventoryCategory): Promise<{

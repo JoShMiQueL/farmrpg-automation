@@ -145,24 +145,28 @@ export class ItemController {
           code:
             result.status === 400
               ? ErrorCode.VALIDATION_ERROR
-              : result.status === 502
-                ? ErrorCode.UPSTREAM_ERROR
-                : ErrorCode.INTERNAL_ERROR,
+              : result.status === 404
+                ? ErrorCode.NOT_FOUND
+                : result.status === 502
+                  ? ErrorCode.UPSTREAM_ERROR
+                  : ErrorCode.INTERNAL_ERROR,
           message: result.error,
           statusCode: result.status !== 200 && result.status !== 500 ? result.status : undefined,
         },
       };
-      return c.json(errorResponse, result.status as 400 | 500 | 502);
+      return c.json(errorResponse, result.status as 400 | 404 | 500 | 502);
     }
 
-    const successResponse: ApiResponse<{ itemId: number; quantitySold: number }> = {
-      success: true,
-      data: {
-        itemId,
-        quantitySold: result.data || 0,
-      },
-      timestamp: new Date().toISOString(),
-    };
+    const successResponse: ApiResponse<{ itemId: number; quantity: number; totalSilver: number }> =
+      {
+        success: true,
+        data: {
+          itemId,
+          quantity,
+          totalSilver: result.data || 0,
+        },
+        timestamp: new Date().toISOString(),
+      };
 
     return c.json(successResponse, 200);
   }
