@@ -21,10 +21,14 @@
     "lint": "biome lint --write .",
     "format": "biome format --write .",
     "ci": "biome ci .",
+    "commit": "bunx cz",
+    "commitlint": "bunx commitlint",
     "prepare": "husky"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "@types/bun": "latest",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7"
