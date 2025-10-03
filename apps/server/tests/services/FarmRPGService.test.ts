@@ -322,12 +322,12 @@ describe("FarmRPGService", () => {
 
   describe("sellItem", () => {
     test("should sell item successfully", async () => {
-      mockHttpClient.post.mockResolvedValue({ data: "success", error: null, status: 200 });
+      mockHttpClient.post.mockResolvedValue({ data: "120", error: null, status: 200 });
 
       const result = await service.sellItem(7758, 50);
 
       expect(result.status).toBe(200);
-      expect(result.data).toBe(50);
+      expect(result.data).toBe(120);
     });
 
     test("should handle sell failure", async () => {
@@ -336,7 +336,16 @@ describe("FarmRPGService", () => {
       const result = await service.sellItem(7758, 50);
 
       expect(result.status).toBe(400);
-      expect(result.error).toContain("Sell failed");
+      expect(result.error).toContain("Insufficient quantity");
+    });
+
+    test("should handle invalid item ID", async () => {
+      mockHttpClient.post.mockResolvedValue({ data: "", error: null, status: 200 });
+
+      const result = await service.sellItem(321412, 1);
+
+      expect(result.status).toBe(404);
+      expect(result.error).toContain("Item not found");
     });
   });
 
@@ -361,7 +370,7 @@ describe("FarmRPGService", () => {
       `;
 
       mockHttpClient.get.mockResolvedValue({ data: mockInventoryHtml, error: null, status: 200 });
-      mockHttpClient.post.mockResolvedValue({ data: "success", error: null, status: 200 });
+      mockHttpClient.post.mockResolvedValue({ data: "1200", error: null, status: 200 });
 
       const result = await service.sellAllItems();
 

@@ -142,7 +142,9 @@ describe("ItemController", () => {
 
       expect(mockFarmRPGService.sellItem).toHaveBeenCalledWith(7758, 10);
       expect(result.success).toBe(true);
-      expect(result.data.quantitySold).toBe(50);
+      expect(result.data.itemId).toBe(7758);
+      expect(result.data.quantity).toBe(10);
+      expect(result.data.totalSilver).toBe(50);
     });
 
     test("should validate itemId is required", async () => {
