@@ -82,7 +82,7 @@ jobs:
 
       - name: Build and check size
         run: |
-          bun run build:client
+          bun run build
           
           # Check if dist directory exists
           if [ -d "apps/client/dist" ]; then
