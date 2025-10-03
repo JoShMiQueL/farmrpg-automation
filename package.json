@@ -2,6 +2,7 @@
   "name": "farmrpg",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "apps/*"
   ],
@@ -10,21 +11,13 @@
     "dev:client": "bun --cwd apps/client dev",
     "dev:server": "bun --cwd apps/server dev",
     "build": "bun --cwd apps/client build",
-    "build:client": "bun --cwd apps/client build",
     "start": "bun --cwd apps/server start",
-    "start:server": "bun --cwd apps/server start",
     "test": "bun --cwd apps/server test",
-    "test:coverage": "bun --cwd apps/server test --coverage",
-    "test:watch": "bun --cwd apps/server test --watch",
-    "typecheck": "cd apps/server && bun x tsc --noEmit",
+    "typecheck": "bun --cwd apps/server tsc --noEmit",
     "check": "biome check --write .",
     "lint": "biome lint --write .",
     "format": "biome format --write .",
     "ci": "biome ci .",
-    "commit": "git-cz",
-    "commit:retry": "git-cz --retry",
-    "commitlint": "commitlint --edit",
-    "commitlint:last": "commitlint --from HEAD~1 --to HEAD --verbose",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -32,17 +25,10 @@
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/bun": "latest",
-    "commitizen": "^4.3.1",
     "concurrently": "^9.2.1",
-    "cz-conventional-changelog": "^3.3.0",
     "husky": "^9.1.7"
   },
   "trustedDependencies": [
     "esbuild"
-  ],
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  }
+  ]
 }

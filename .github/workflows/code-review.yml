@@ -81,7 +81,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run tests with coverage
-        run: bun run test:coverage
+        run: bun --cwd apps/server test --coverage
 
       - name: Comment coverage on PR
         uses: actions/github-script@v7
