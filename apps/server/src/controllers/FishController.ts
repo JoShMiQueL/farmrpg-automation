@@ -1,7 +1,7 @@
 // Controller for fishing-related endpoints
+
+import { ErrorCode, type FishCatchResponse } from "@farmrpg/types";
 import type { Context } from "hono";
-import { ErrorCode } from "../models/ApiResponse";
-import type { FishCatchResponse } from "../models/FishCatch";
 import { farmRPGService } from "../services";
 
 export class FishController {

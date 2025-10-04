@@ -1,18 +1,18 @@
 // Refactored FarmRPG Service with separated responsibilities
 
-import type { BuyItemResult } from "../models/BuyItem";
-import type { FishCatchData } from "../models/FishCatch";
+import { INVENTORY_CAP } from "@farmrpg/config";
 import type {
+  BuyItemResult,
+  FishCatchData,
   InventoryCategory,
   InventoryCategoryData,
   InventoryData,
   InventoryItem,
   InventoryStats,
-} from "../models/Inventory";
-import type { ItemDetails } from "../models/Item";
-import type { PlayerCoins } from "../models/PlayerStats";
-import { sleep } from "../utils/async";
-import { INVENTORY_CAP } from "../utils/constants";
+  ItemDetails,
+  PlayerCoins,
+} from "@farmrpg/types";
+import { sleep } from "@farmrpg/utils";
 import { HttpClient } from "./HttpClient";
 
 export class FarmRPGService {

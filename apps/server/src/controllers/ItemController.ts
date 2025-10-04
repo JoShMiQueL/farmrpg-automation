@@ -1,8 +1,12 @@
 // Controller for item-related endpoints
+
+import {
+  type ApiResponse,
+  type BuyItemResponse,
+  ErrorCode,
+  type ItemResponse,
+} from "@farmrpg/types";
 import type { Context } from "hono";
-import { type ApiResponse, ErrorCode } from "../models/ApiResponse";
-import type { BuyItemResponse } from "../models/BuyItem";
-import type { ItemResponse } from "../models/Item";
 import { farmRPGService } from "../services";
 
 export class ItemController {

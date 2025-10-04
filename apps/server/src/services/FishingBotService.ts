@@ -1,7 +1,7 @@
 // Fishing bot service with automated fishing logic
 
-import type { BotConfig, BotEvent, BotState, BotStatus } from "../models/FishingBot";
-import { BotStatus as Status } from "../models/FishingBot";
+import type { BotConfig, BotEvent, BotState, BotStatus } from "@farmrpg/types";
+import { BotStatus as Status } from "@farmrpg/types";
 import type { FarmRPGService } from "./FarmRPGService";
 
 export class FishingBotService {

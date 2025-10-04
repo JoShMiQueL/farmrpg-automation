@@ -1,7 +1,7 @@
 // Controller for player-related endpoints
+
+import { ErrorCode, type PlayerStatsResponse } from "@farmrpg/types";
 import type { Context } from "hono";
-import { ErrorCode } from "../models/ApiResponse";
-import type { PlayerStatsResponse } from "../models/PlayerStats";
 import { farmRPGService } from "../services";
 
 export class PlayerController {

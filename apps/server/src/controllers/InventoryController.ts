@@ -1,7 +1,7 @@
 // Controller for inventory-related endpoints
+
+import { ErrorCode, type InventoryCategory, type InventoryResponse } from "@farmrpg/types";
 import type { Context } from "hono";
-import { ErrorCode } from "../models/ApiResponse";
-import type { InventoryCategory, InventoryResponse } from "../models/Inventory";
 import { farmRPGService } from "../services";
 
 export class InventoryController {
