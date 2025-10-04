@@ -188,7 +188,7 @@ describe("FarmRPGService", () => {
       const result = await service.catchFish(1, 1);
 
       expect(result.status).toBe(400);
-      expect(result.error).toContain("Failed to catch fish");
+      expect(result.error).toBe("NO_BAIT");
     });
   });
 
