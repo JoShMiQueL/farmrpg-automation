@@ -82,7 +82,9 @@ export class FishingBotService {
       autoStop: config.autoStop
         ? { ...this.state.config.autoStop, ...config.autoStop }
         : this.state.config.autoStop,
-      delay: config.delay ? { ...this.state.config.delay, ...config.delay } : this.state.config.delay,
+      delay: config.delay
+        ? { ...this.state.config.delay, ...config.delay }
+        : this.state.config.delay,
     };
 
     this.emitEvent("status", {
@@ -223,8 +225,11 @@ export class FishingBotService {
         if (result.error.toLowerCase().includes("bait")) {
           if (this.state.config.autoBuyBait?.enabled) {
             const autoBuyConfig = this.state.config.autoBuyBait;
-            const buyResult = await this.buyBait(autoBuyConfig.baitItemId, autoBuyConfig.buyQuantity);
-            
+            const buyResult = await this.buyBait(
+              autoBuyConfig.baitItemId,
+              autoBuyConfig.buyQuantity,
+            );
+
             if (!buyResult) {
               // Failed to buy bait, stop if configured
               if (this.state.config.autoStop?.noBait) {
@@ -238,7 +243,10 @@ export class FishingBotService {
           }
         }
 
-        if (result.error.toLowerCase().includes("stamina") && this.state.config.autoStop?.noStamina) {
+        if (
+          result.error.toLowerCase().includes("stamina") &&
+          this.state.config.autoStop?.noStamina
+        ) {
           this.updateStatus(Status.STOPPED, "Out of stamina");
           return;
         }
@@ -269,8 +277,11 @@ export class FishingBotService {
             // Try to buy bait if auto-buy is enabled
             if (this.state.config.autoBuyBait?.enabled) {
               const autoBuyConfig = this.state.config.autoBuyBait;
-              const buyResult = await this.buyBait(autoBuyConfig.baitItemId, autoBuyConfig.buyQuantity);
-              
+              const buyResult = await this.buyBait(
+                autoBuyConfig.baitItemId,
+                autoBuyConfig.buyQuantity,
+              );
+
               if (!buyResult) {
                 this.updateStatus(Status.STOPPED, "Out of bait and failed to auto-buy");
                 return;

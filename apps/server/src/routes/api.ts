@@ -6,8 +6,8 @@ import { FishingBotController } from "../controllers/FishingBotController";
 import { InventoryController } from "../controllers/InventoryController";
 import { ItemController } from "../controllers/ItemController";
 import { PlayerController } from "../controllers/PlayerController";
-import { fishingBotService } from "../services";
 import type { BotCommand } from "../models/FishingBot";
+import { fishingBotService } from "../services";
 
 const api = new Hono();
 
