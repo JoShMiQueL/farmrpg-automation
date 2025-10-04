@@ -8,8 +8,8 @@ const envSchema = z.object({
   // Server configuration
   PORT: z.coerce.number().min(1).max(65535).default(3000),
 
-  // FarmRPG API credentials
-  FARMRPG_COOKIE: z.string().min(1, "FARMRPG_COOKIE is required"),
+  // FarmRPG API credentials (optional in test environment)
+  FARMRPG_COOKIE: z.string().min(1, "FARMRPG_COOKIE is required").optional(),
 
   // Logging
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
@@ -28,7 +28,14 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 // Parse and validate environment variables
-export const env = envSchema.parse(process.env);
+// In test environment, provide defaults for optional values
+export const env = envSchema.parse({
+  ...process.env,
+  // Provide test defaults if not set
+  ...(process.env.NODE_ENV === "test" && !process.env.FARMRPG_COOKIE
+    ? { FARMRPG_COOKIE: "test-cookie" }
+    : {}),
+});
 
 // Helper to check if we're in development
 export const isDevelopment = env.NODE_ENV === "development";
