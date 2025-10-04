@@ -26,7 +26,12 @@ farmrpg/
 ├── apps/
 │   ├── client/          # React + Vite frontend
 │   ├── server/          # Hono + Bun API backend
+│   ├── bot/             # Standalone bot application
 │   └── DEVELOPMENT.md   # Development guide
+├── packages/
+│   ├── types/           # Shared TypeScript types
+│   ├── config/          # Shared configuration
+│   └── utils/           # Shared utilities
 ├── package.json         # Workspaces configuration
 └── README.md
 ```
@@ -35,10 +40,21 @@ farmrpg/
 ```
 apps/server/src/
 ├── controllers/    # Request handlers
-├── models/         # TypeScript interfaces
+├── middleware/     # Express-like middleware
 ├── routes/         # API routes
 ├── services/       # Business logic
-└── utils/          # Helpers & constants
+└── models/         # (Deprecated - use @farmrpg/types)
+```
+
+### Shared Packages
+```
+packages/
+├── types/          # Shared TypeScript types
+│   ├── api/        # API request/response types
+│   ├── models/     # Domain models
+│   └── events/     # Event types
+├── config/         # Environment & constants
+└── utils/          # Async, logging, validation
 ```
 
 ## 🚀 Quick Start
@@ -65,6 +81,12 @@ bun run dev:client
 bun run dev:server
 ```
 
+**Run bot:**
+```bash
+cd apps/bot
+bun run fishing
+```
+
 ### Production
 
 **Build client:**
@@ -74,6 +96,12 @@ bun run build
 
 **Run server:**
 ```bash
+bun run start
+```
+
+**Run bot:**
+```bash
+cd apps/bot
 bun run start
 ```
 
@@ -100,10 +128,14 @@ bun run start
   ```json
   {
     "locationId": 1,
-    "baitAmount": 1
+    "baitId": 1
   }
   ```
 - `GET /api/fish/bait?locationId=1` - Get bait info (count, streak, best streak)
+
+### Bot (Deprecated - Use standalone bot app)
+- Bot endpoints have been moved to the standalone bot application
+- See `apps/bot/README.md` for bot usage
 
 ## 📊 Technologies
 
@@ -119,10 +151,17 @@ bun run start
 - **TypeScript** - Type safety
 - **Cheerio** - HTML parsing
 
+### Shared Packages
+- **@farmrpg/types** - Shared TypeScript types
+- **@farmrpg/config** - Environment validation with Zod
+- **@farmrpg/utils** - Logging, async utilities, validation
+
 ### Architecture
-- **Bun Workspaces** - Monorepo
+- **Bun Workspaces** - Monorepo with 3 apps + 3 packages
 - **MVC Pattern** - Backend structure
-- **Dependency Injection** - Shared services
+- **Middleware Layer** - Error handling, logging, validation
+- **Feature-based** - Client organization
+- **Strategy Pattern** - Bot extensibility
 
 ## 🔒 Security
 
@@ -135,6 +174,9 @@ bun run start
 
 - **[Server API Docs](apps/server/README.md)** - Detailed API documentation
 - **[MVC Architecture](apps/server/MVC_ARCHITECTURE.md)** - Backend architecture patterns
+- **[Fishing Bot API](apps/server/FISHING_BOT_API.md)** - Bot WebSocket API (deprecated)
+- **[Bot Application](apps/bot/README.md)** - Standalone bot documentation
+- **[Restructure Proposal](RESTRUCTURE_PROPOSAL.md)** - Complete restructure plan
 
 ## 🔧 Code Quality
 
