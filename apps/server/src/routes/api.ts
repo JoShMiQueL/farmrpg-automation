@@ -1,22 +1,30 @@
 // API routes configuration
+
+import type { BotCommand } from "@farmrpg/types";
 import { Hono } from "hono";
 import { upgradeWebSocket, websocket } from "hono/bun";
 import { FishController } from "../controllers/FishController";
 import { FishingBotController } from "../controllers/FishingBotController";
+import { HealthController } from "../controllers/HealthController";
 import { InventoryController } from "../controllers/InventoryController";
 import { ItemController } from "../controllers/ItemController";
 import { PlayerController } from "../controllers/PlayerController";
-import type { BotCommand } from "../models/FishingBot";
 import { fishingBotService } from "../services";
 
 const api = new Hono();
 
 // Initialize controllers
+const healthController = new HealthController();
 const playerController = new PlayerController();
 const itemController = new ItemController();
 const inventoryController = new InventoryController();
 const fishController = new FishController();
 const fishingBotController = new FishingBotController(fishingBotService);
+
+// Health check routes
+api.get("/health", (c) => healthController.health(c));
+api.get("/health/ready", (c) => healthController.ready(c));
+api.get("/health/live", (c) => healthController.live(c));
 
 // Player routes
 api.get("/player/stats", (c) => playerController.getStats(c));
