@@ -12,6 +12,18 @@
         "husky": "^9.1.7",
       },
     },
+    "apps/bot": {
+      "name": "@farmrpg/bot",
+      "version": "0.1.0",
+      "dependencies": {
+        "@farmrpg/config": "workspace:*",
+        "@farmrpg/types": "workspace:*",
+        "@farmrpg/utils": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
     "apps/client": {
       "name": "@farmrpg/client",
       "version": "0.1.0",
@@ -229,6 +241,8 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.25.10", "", { "os": "win32", "cpu": "ia32" }, "sha512-QHPDbKkrGO8/cz9LKVnJU22HOi4pxZnZhhA2HYHez5Pz4JeffhDjf85E57Oyco163GnzNCVkZK0b/n4Y0UHcSw=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.10", "", { "os": "win32", "cpu": "x64" }, "sha512-9KpxSVFCu0iK1owoez6aC/s/EdUQLDN3adTxGCqxMVhrPDj6bt5dbrHDXUuq+Bs2vATFBBrQS5vdQ/Ed2P+nbw=="],
+
+    "@farmrpg/bot": ["@farmrpg/bot@workspace:apps/bot"],
 
     "@farmrpg/client": ["@farmrpg/client@workspace:apps/client"],
 
