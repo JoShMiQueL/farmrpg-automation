@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev": "concurrently --names 'CLIENT,SERVER' --prefix-colors 'cyan,magenta' 'bun run dev:client' 'bun run dev:server'",
