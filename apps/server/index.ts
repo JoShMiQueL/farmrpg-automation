@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import api from "./src/routes/api";
+import api, { websocket } from "./src/routes/api";
 
 const app = new Hono();
 
@@ -17,9 +17,11 @@ app.route("/api", api);
 const _isDevelopment = process.env.NODE_ENV !== "production";
 const port = process.env.PORT || 3000;
 
-const server = Bun.serve({
+Bun.serve({
   port,
   fetch: app.fetch,
+  websocket,
 });
 
-console.log(`🚀 Hono API Server running at http://localhost:${server.port}`);
+console.log(`🚀 Hono API Server running at http://localhost:${port}`);
+console.log(`🔌 WebSocket endpoint: ws://localhost:${port}/api/bot/ws`);

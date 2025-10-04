@@ -276,9 +276,11 @@ Server runs at **http://localhost:3000** with hot reload.
 ```json
 {
   "locationId": 1,
-  "baitAmount": 1
+  "baitId": 1
 }
 ```
+
+**Note:** `baitId` is the bait type ID (e.g., 1 for Worms, 2 for Grubs, etc.), not the item ID.
 
 **Response:**
 ```json

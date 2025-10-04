@@ -48,7 +48,7 @@ describe("FishController", () => {
 
     mockContext = {
       req: {
-        json: mock(() => Promise.resolve({ locationId: 1, baitAmount: 1 })),
+        json: mock(() => Promise.resolve({ locationId: 1, baitId: 1 })),
         query: mock(() => "1"),
       },
       json: mock((data: any, _status?: number) => {
@@ -77,7 +77,7 @@ describe("FishController", () => {
     });
 
     test("should validate locationId is a number", async () => {
-      mockContext.req.json.mockResolvedValue({ locationId: "invalid", baitAmount: 1 });
+      mockContext.req.json.mockResolvedValue({ locationId: "invalid", baitId: 1 });
 
       const result: any = await controller.catchFish(mockContext as Context);
 
@@ -86,7 +86,7 @@ describe("FishController", () => {
     });
 
     test("should validate locationId is greater than 0", async () => {
-      mockContext.req.json.mockResolvedValue({ locationId: 0, baitAmount: 1 });
+      mockContext.req.json.mockResolvedValue({ locationId: 0, baitId: 1 });
 
       const result: any = await controller.catchFish(mockContext as Context);
 
@@ -94,8 +94,8 @@ describe("FishController", () => {
       expect(result.error.code).toBe("VALIDATION_ERROR");
     });
 
-    test("should validate baitAmount is a number", async () => {
-      mockContext.req.json.mockResolvedValue({ locationId: 1, baitAmount: "invalid" });
+    test("should validate baitId is a number", async () => {
+      mockContext.req.json.mockResolvedValue({ locationId: 1, baitId: "invalid" });
 
       const result: any = await controller.catchFish(mockContext as Context);
 
@@ -103,8 +103,8 @@ describe("FishController", () => {
       expect(result.error.code).toBe("VALIDATION_ERROR");
     });
 
-    test("should validate baitAmount is greater than 0", async () => {
-      mockContext.req.json.mockResolvedValue({ locationId: 1, baitAmount: 0 });
+    test("should validate baitId is greater than 0", async () => {
+      mockContext.req.json.mockResolvedValue({ locationId: 1, baitId: 0 });
 
       const result: any = await controller.catchFish(mockContext as Context);
 

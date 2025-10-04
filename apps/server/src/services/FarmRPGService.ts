@@ -465,7 +465,7 @@ export class FarmRPGService {
 
   async catchFish(
     locationId: number = 1,
-    baitAmount: number = 1,
+    baitId: number = 1, // Bait type ID (e.g., 1 for Worms, 2 for Grubs, etc.)
   ): Promise<{ status: number; data?: FishCatchData; error?: string }> {
     // Generate random parameters
     const r = Math.floor(Math.random() * 1000000);
@@ -473,7 +473,7 @@ export class FarmRPGService {
     const q = Math.floor(Math.random() * 1000);
 
     const result = await this.http.post(
-      `/worker.php?go=fishcaught&id=${locationId}&r=${r}&bamt=${baitAmount}&p=${p}&q=${q}`,
+      `/worker.php?go=fishcaught&id=${locationId}&r=${r}&bamt=${baitId}&p=${p}&q=${q}`,
     );
 
     if (result.error) {
@@ -515,7 +515,7 @@ export class FarmRPGService {
       const bait = this.http.parseNumber(baitText);
 
       if (!fishName || !fishImage) {
-        return { status: 400, error: "Failed to catch fish - no fish data returned" };
+        return { status: 400, error: "NO_BAIT" };
       }
 
       return {

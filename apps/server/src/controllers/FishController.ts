@@ -18,7 +18,7 @@ export class FishController {
     }
 
     const locationId = body.locationId ?? 1;
-    const baitAmount = body.baitAmount ?? 1;
+    const baitId = body.baitId ?? 1; // Bait type ID (e.g., 1 for Worms)
 
     if (typeof locationId !== "number" || locationId < 1) {
       const errorResponse: FishCatchResponse = {
@@ -31,18 +31,18 @@ export class FishController {
       return c.json(errorResponse, 400);
     }
 
-    if (typeof baitAmount !== "number" || baitAmount < 1) {
+    if (typeof baitId !== "number" || baitId < 1) {
       const errorResponse: FishCatchResponse = {
         success: false,
         error: {
           code: ErrorCode.VALIDATION_ERROR,
-          message: "baitAmount must be a number greater than 0",
+          message: "baitId must be a number greater than 0",
         },
       };
       return c.json(errorResponse, 400);
     }
 
-    const result = await this.farmRPGService.catchFish(locationId, baitAmount);
+    const result = await this.farmRPGService.catchFish(locationId, baitId);
 
     if (result.error) {
       const errorResponse: FishCatchResponse = {
